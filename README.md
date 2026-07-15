@@ -4,11 +4,11 @@
 
   <p>
     <img src="https://img.shields.io/badge/License-Proprietary-red.svg" alt="License: Proprietary" />
-    <img src="https://img.shields.io/badge/React-18-blue.svg" alt="React 18" />
+    <img src="https://img.shields.io/badge/React-19-blue.svg" alt="React 19" />
     <img src="https://img.shields.io/badge/TypeScript-Strict-blue.svg" alt="TypeScript" />
     <img src="https://img.shields.io/badge/Node.js-Express-green.svg" alt="Node.js" />
-    <img src="https://img.shields.io/badge/Database-PostgreSQL-blue.svg" alt="PostgreSQL" />
-    <img src="https://img.shields.io/badge/AI-Gemini_Flash-orange.svg" alt="Google Gemini API" />
+    <img src="https://img.shields.io/badge/Database-Neon_Postgres-blue.svg" alt="Neon Database" />
+    <img src="https://img.shields.io/badge/AI-Gemini-orange.svg" alt="Google Gemini API" />
     <img src="https://img.shields.io/badge/Payments-Stripe-purple.svg" alt="Stripe" />
   </p>
 </div>
@@ -22,7 +22,7 @@
 
 **CareerForge AI** is a premium, full-stack AI SaaS platform engineered to give job seekers an unfair advantage in the modern job market. It seamlessly analyzes resumes against Applicant Tracking Systems (ATS), generates bespoke cover letters, and simulates real-world interviews using advanced LLM technology. 
 
-Designed for high-availability production deployment, CareerForge AI utilizes a decoupled architecture with a highly-performant Node.js backend and a hyper-responsive React frontend, backed by PostgreSQL and robust background queue processing.
+Designed for high-availability production deployment, CareerForge AI utilizes a decoupled architecture with a highly-performant Node.js backend and a hyper-responsive React frontend, backed by Neon Serverless Postgres and robust background queue processing.
 
 ---
 
@@ -42,7 +42,7 @@ Designed for high-availability production deployment, CareerForge AI utilizes a 
 CareerForge AI is built on a modern, decoupled architecture ensuring high availability, type safety, and rapid iteration.
 
 ### 🎨 Frontend (Client)
-- **Framework**: React 18 & Vite (Ultra-fast HMR)
+- **Framework**: React 19 & Vite (Ultra-fast HMR)
 - **Language**: TypeScript (Strict Mode)
 - **Styling**: Tailwind CSS v4 (Glassmorphism, gradients, modern utility classes)
 - **State Management**: React Context API & Custom Hooks
@@ -54,17 +54,17 @@ CareerForge AI is built on a modern, decoupled architecture ensuring high availa
 - **Runtime**: Node.js
 - **Framework**: Express.js REST API
 - **Language**: TypeScript
-- **Database**: PostgreSQL (Relational Data Modeling)
+- **Database**: Neon Serverless Postgres
 - **ORM**: Prisma (Type-safe queries, connection pooling & migrations)
-- **Queueing & Cron**: BullMQ + Redis + node-cron (For asynchronous email & webhooks)
+- **Queueing & Cron**: BullMQ + Redis + node-cron (For asynchronous webhooks and queue logic)
 - **Authentication**: JWT-based stateless Auth + OAuth 2.0 (Google)
 
 ### 🔌 Third-Party Integrations
-- **AI Core**: Google Gemini API (Core LLM logic for parsing and generation)
+- **AI Core**: Google Gemini API (`@google/genai`)
 - **Payments**: Stripe (Checkout, Webhooks, Billing Portal, Subscriptions)
 - **Storage**: Cloudinary (Secure resume & asset hosting)
 - **Analytics**: PostHog (Product analytics) & Sentry (Error tracking/tracing)
-- **Email**: Resend / SMTP (Transactional notifications)
+- **Email**: Nodemailer (SMTP for transactional notifications)
 
 ---
 
@@ -89,7 +89,7 @@ The core of CareerForge AI relies on multi-stage LLM prompting and deterministic
 
 ## 🗄️ Database Schema Overview
 
-Our PostgreSQL database (managed by Prisma) relies on these core models:
+Our Neon Serverless Postgres database (managed by Prisma) relies on these core models:
 - **`User`**: Manages credentials, roles, OAuth tokens, and Stripe `customerId`.
 - **`Subscription`**: Tracks active Stripe plans, renewal dates, and status (`active`, `canceled`, `past_due`).
 - **`Resume`**: Stores parsed version of uploaded resumes.
@@ -101,7 +101,7 @@ Our PostgreSQL database (managed by Prisma) relies on these core models:
 ## 📂 Comprehensive Project Structure
 
 ```text
-careerforge-ai/
+CareerForge-AI/
 ├── prisma/                 # Database schema and migration histories
 │   └── schema.prisma       # Core relational models (Users, Scans, Subscriptions)
 ├── public/                 # Static public assets (Favicons, OpenGraph images)
@@ -128,17 +128,17 @@ careerforge-ai/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js**: `v18.x` or higher
-- **Database**: PostgreSQL instance (Local or Cloud)
-- **Redis**: Required for BullMQ background jobs (Optional if falling back to local loops)
-- **API Keys**: Stripe, Gemini/OpenAI, Cloudinary
+- **Node.js**: `v20.x` or higher
+- **Database**: Neon Serverless Postgres instance
+- **Redis**: Required for BullMQ background jobs
+- **API Keys**: Stripe, Gemini, Cloudinary
 
 ### Local Installation
 
-1. **Clone the secure repository:**
+1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
-   cd resumeai
+   git clone https://github.com/Dipendra2003/CareerForge-AI.git
+   cd CareerForge-AI
    ```
 
 2. **Install dependencies:**
@@ -153,7 +153,7 @@ careerforge-ai/
    ```
 
 4. **Initialize Database:**
-   Push the schema to your local PostgreSQL instance and generate the Prisma Client.
+   Push the schema to your Neon database instance and generate the Prisma Client.
    ```bash
    npx prisma generate
    npx prisma db push
@@ -189,7 +189,7 @@ For a commercial deployment, CareerForge AI implements several security layers:
 
 CareerForge AI is container-ready and designed for PaaS/IaaS deployment.
 
-- **Database**: Supabase, AWS RDS, or Aiven (PostgreSQL).
+- **Database**: Neon Database (Serverless Postgres).
 - **Backend API**: Render, AWS Elastic Beanstalk, or Railway. Ensure `NODE_ENV=production`.
 - **Frontend App**: Vercel, Netlify, or AWS Amplify.
 - **Cache**: Upstash or AWS ElastiCache (Redis).
@@ -199,10 +199,25 @@ Ensure CORS policies (`CLIENT_URL`) are strictly defined. Never expose the `.env
 
 ---
 
+## 👨‍💻 Developer Details
+
+**Dipendra Kumar**
+- 📞 **Phone:** +91-7644868038
+- ✉️ **Email:** [dipendrak299@gmail.com](mailto:dipendrak299@gmail.com)
+- 🐙 **GitHub:** [Dipendra2003](https://github.com/Dipendra2003)
+- 💼 **LinkedIn:** [Dipendra Kumar](https://www.linkedin.com/in/dipendra-kumar-b077b9286/)
+- 🌐 **Portfolio:** [portfolio-dipendra.vercel.app](https://portfolio-dipendra.vercel.app/)
+
+### 🚀 Live Projects
+- **[FarmLink AI](https://farmlinkai.vercel.app/)**: FarmLink AI is an AI-powered agriculture platform built to connect farmers directly with buyers while making farming smarter through modern technology. Our mission is to reduce the gap between farmers and the market by providing digital tools that improve productivity, transparency, and profitability. The platform offers a secure marketplace for buying and selling crops, AI-powered crop recommendations, voice assistance, KYC verification, real-time market insights, and order management—all in one place. FarmLink AI is designed to simplify agricultural trading and help farmers make informed decisions. *"Empowering farmers with technology, connecting them with opportunities, and building a smarter future for agriculture."*
+- **[CareerForge AI](https://github.com/Dipendra2003/CareerForge-AI)**: The premium AI career optimization platform (this repository).
+
+---
+
 ## ⚖️ License & Legal
 
-This software is **Proprietary and Confidential**. All rights, title, and interest in and to the software, including all intellectual property rights therein, are the exclusive property of **CareerForge AI**. 
+This software is **Proprietary and Confidential**. All rights, title, and interest in and to the software, including all intellectual property rights therein, are the exclusive property of **Dipendra Kumar** and **CareerForge AI**. 
 
-Unauthorized copying, modification, distribution, public display, or commercial exploitation is strictly prohibited. For licensing inquiries, compliance questions, or enterprise partnership, please contact the administrators.
+Unauthorized copying, modification, distribution, public display, or commercial exploitation is strictly prohibited. For licensing inquiries, compliance questions, or enterprise partnership, please contact the administrator.
 
-*Copyright © 2024-Present CareerForge AI. All rights reserved.*
+*Copyright © 2026-Present Dipendra Kumar (CareerForge AI). All rights reserved.*

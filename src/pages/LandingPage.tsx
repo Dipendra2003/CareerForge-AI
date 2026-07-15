@@ -109,7 +109,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
       <SEOMeta pageKey="home" />
       {/* Hero Section */}
       {isSectionVisible('hero') && (
-      <section className={`text-center max-w-4xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto space-y-6 pt-10 px-4 ${cms?.hero?.background || ''}`}>
+      <section className={`text-center max-w-4xl xl:max-w-7xl 2xl:max-w-360 mx-auto space-y-6 pt-10 px-4 ${cms?.hero?.background || ''}`}>
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -127,7 +127,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
           className="text-3xl md:text-5xl font-extrabold font-display tracking-tight text-slate-900 leading-tight"
         >
           {cms?.hero?.title || (
-            <>Beat the hiring filters and land your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-800">dream job</span></>
+            <>Beat the hiring filters and land your <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-indigo-800">dream job</span></>
           )}
         </motion.h1>
 
@@ -181,7 +181,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto pt-10 border-t border-slate-100"
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl xl:max-w-7xl 2xl:max-w-360 mx-auto pt-10 border-t border-slate-100"
         >
           {(cms?.stats?.length ? cms.stats : [
             { title: "70%", subtitle: "Resumes Rejected by ATS" },
@@ -200,7 +200,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
 
       {/* How It Works Section */}
       <section className="bg-slate-50 py-16 px-4 sm:px-8 border-y border-slate-100">
-        <div className="max-w-5xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto space-y-12">
+        <div className="max-w-5xl xl:max-w-7xl 2xl:max-w-360 mx-auto space-y-12">
           <div className="text-center space-y-3">
             <h2 className="text-2xl md:text-3xl font-extrabold font-display text-slate-900">How It Works</h2>
             <p className="text-slate-600 max-w-md mx-auto">Optimize your application package in 3 simple, stress-free steps.</p>
@@ -223,7 +223,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
 
       {/* Features Grid Section */}
       {isSectionVisible('features') && (
-      <section className="max-w-5xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto space-y-12 px-4 border-b border-slate-100 pb-16">
+      <section className="max-w-5xl xl:max-w-7xl 2xl:max-w-360 mx-auto space-y-12 px-4 border-b border-slate-100 pb-16">
         <div className="text-center space-y-3">
           <h2 className="text-2xl md:text-3xl font-extrabold font-display text-slate-900">Why {companyName} Beats Manual Submissions</h2>
           <p className="text-slate-600 max-w-lg mx-auto">Get comprehensive system advantages over competing candidates through targeted AI transformations.</p>
@@ -250,7 +250,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
 
       {/* Social Proof Section */}
       {isSectionVisible('testimonials') && (
-      <section className="max-w-5xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto space-y-12 px-4">
+      <section className="max-w-5xl xl:max-w-7xl 2xl:max-w-360 mx-auto space-y-12 px-4">
         <div className="text-center space-y-3">
           <h2 className="text-2xl md:text-3xl font-extrabold font-display text-slate-900">Success Stories</h2>
           <p className="text-slate-600">Hear from job seekers who successfully bypassed industry recruiting filters.</p>
@@ -282,7 +282,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
 
       {/* Pricing Section */}
       {isSectionVisible('pricing') && (
-      <section id="pricing" className="max-w-5xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto space-y-12 px-4 relative">
+      <section id="pricing" className="max-w-5xl xl:max-w-7xl 2xl:max-w-360 mx-auto space-y-12 px-4 relative">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-indigo-50/50 via-transparent to-transparent opacity-80 pointer-events-none rounded-[3rem]" />
         <div className="text-center space-y-2 relative z-10">
           <span className="text-[10px] bg-indigo-50 border border-indigo-100 text-indigo-700 font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
@@ -311,7 +311,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
           </div>
         </div>
 
-        <div className={`grid grid-cols-1 md:grid-cols-${Math.min(plans.length, 3)} gap-8 max-w-${plans.length === 1 ? 'md' : plans.length === 2 ? '3xl' : '5xl'} xl:max-w-7xl 2xl:max-w-[90rem] mx-auto items-stretch`}>
+        <div className={`grid grid-cols-1 gap-8 ${plans.length === 1 ? 'md:grid-cols-1 max-w-md' : plans.length === 2 ? 'md:grid-cols-2 max-w-3xl' : 'md:grid-cols-3 max-w-5xl'} xl:max-w-7xl 2xl:max-w-360 mx-auto items-stretch`}>
           {plans.map((plan) => {
             const isActive = userPlan?.toLowerCase() === plan.slug.toLowerCase();
             const isFree = plan.monthlyPrice === 0;
@@ -393,7 +393,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
         </div>
 
         {/* Money back badge */}
-        <div className="border border-dashed border-slate-200 max-w-3xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 bg-slate-50/50 justify-between">
+        <div className="border border-dashed border-slate-200 max-w-3xl xl:max-w-7xl 2xl:max-w-360 mx-auto rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 bg-slate-50/50 justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-50 border border-indigo-100 rounded-full">
               <ShieldCheck className="w-5 h-5 text-indigo-600" />
@@ -413,7 +413,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
       {/* Target Market Strategy Callout (Partners) */}
       {isSectionVisible('partners') && (
       <section className="bg-indigo-50 py-16 px-4 sm:px-8">
-        <div className="max-w-4xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        <div className="max-w-4xl xl:max-w-7xl 2xl:max-w-360 mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div className="space-y-4">
             <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest block">Strategic Outreach</span>
             <h2 className="text-2xl md:text-3xl font-extrabold font-display text-slate-900 tracking-tight">Built for Everyone</h2>
@@ -441,7 +441,7 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
 
       {/* FAQ Section */}
       {isSectionVisible('faq') && (
-      <section id="faq" className="max-w-3xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto space-y-8 px-4">
+      <section id="faq" className="max-w-3xl xl:max-w-7xl 2xl:max-w-360 mx-auto space-y-8 px-4">
         <div className="text-center space-y-3">
           <div className="p-2 bg-indigo-50 border border-indigo-100 rounded-full inline-block">
             <HelpCircle className="w-5 h-5 text-indigo-600" />
@@ -483,11 +483,11 @@ export default function LandingPage({ onNavigate, onUpgrade, userPlan }: Landing
 
       {/* Footer Branding CTA banner */}
       {isSectionVisible('cta') && (
-      <section className="max-w-3xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto space-y-6 px-4">
+      <section className="max-w-3xl xl:max-w-7xl 2xl:max-w-360 mx-auto space-y-6 px-4">
         {(cms?.ctas?.length ? cms.ctas : [
             { title: "Ready to boost your interview callbacks?", description: "Get detailed keyword matching report and resume suggestions in 10 seconds.", buttonText: "Start Your First Scan", buttonUrl: "" }
         ]).map((cta: any, idx: number) => (
-        <div key={idx} className={`bg-gradient-to-br from-indigo-50 to-slate-50 border-1 border-indigo-100/60 p-8 rounded-3xl text-center space-y-4 ${cta.background || ''}`}>
+        <div key={idx} className={`bg-linear-to-br from-indigo-50 to-slate-50 border border-indigo-100/60 p-8 rounded-3xl text-center space-y-4 ${cta.background || ''}`}>
             <h3 className="text-2xl font-bold text-slate-900">{cta.title}</h3>
             <p className="text-slate-600 text-sm max-w-md mx-auto">{cta.description}</p>
             <button

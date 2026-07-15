@@ -16,7 +16,7 @@ export default function Footer() {
   const footerCopyright = settings.footerCopyright || `© ${companyName} ${new Date().getFullYear()}. All rights reserved.`;
 
   return (
-    <footer className="bg-white border-t border-[var(--color-border)] pt-16 pb-8 mt-auto">
+    <footer className="bg-white border-t border-border pt-16 pb-8 mt-auto">
       {/* CTA Section */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 mb-16 text-center">
         <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-4">
@@ -27,25 +27,25 @@ export default function Footer() {
         </p>
         <Link 
           to="/analyze" 
-          className="inline-flex items-center justify-center px-8 py-3.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl hover:bg-opacity-90 transition shadow-sm text-sm"
+          className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-xl hover:bg-opacity-90 transition shadow-sm text-sm"
         >
           Analyze Resume Free
         </Link>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 mb-16">
-          {/* Column 1 - Brand & Trust */}
-          <div className="lg:col-span-1">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-8 mb-16">
+          {/* Brand & Trust Section - 1/3 width on desktop */}
+          <div className="lg:w-1/3 shrink-0">
             <Link to="/" className="flex items-center gap-2 mb-4">
               {settings.logoUrl ? (
                 <img src={settings.logoUrl} alt={`${companyName} Logo`} className="h-6 object-contain" />
               ) : (
-                <Layers className="w-6 h-6 text-[var(--color-primary)]" />
+                <Layers className="w-6 h-6 text-primary" />
               )}
               <span className="font-black text-slate-900 tracking-tight text-xl font-display">{companyName}</span>
             </Link>
-            <p className="text-slate-500 text-sm leading-relaxed mb-6">
+            <p className="text-slate-500 text-sm leading-relaxed mb-6 pr-4">
               {companyDescription}
             </p>
             <div className="space-y-2">
@@ -60,126 +60,129 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 2 - Product */}
-          <div>
-            <h3 className="font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Product</h3>
-            <ul className="space-y-3">
-              <li><Link to="/analyze" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Resume Scanner</Link></li>
-              <li><Link to="/tools" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">AI Tools</Link></li>
-              <li><Link to="/pricing" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Pricing</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 3 - Company */}
-          <div>
-            <h3 className="font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Company</h3>
-            <ul className="space-y-3 mb-6">
-              <li><Link to="/about" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">About Us</Link></li>
-              {settings.contactPageEnabled !== false && (
-                <li><Link to="/contact" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Contact Us</Link></li>
-              )}
-              <li>
-                <button 
-                  type="button" 
-                  onClick={() => showFeedback("manual")} 
-                  className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition cursor-pointer text-left"
-                >
-                  Send Feedback
-                </button>
-              </li>
-            </ul>
-            
-            <h3 className="font-bold text-slate-900 mb-3 text-sm tracking-wider uppercase">Contact</h3>
-            <div className="space-y-2 text-sm text-slate-600">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                <a href={`mailto:${supportEmail}`} className="hover:text-[var(--color-primary)] transition truncate">{supportEmail}</a>
-              </div>
-              {settings.companyPhone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-slate-400 shrink-0" />
-                  <a href={`tel:${settings.companyPhone}`} className="hover:text-[var(--color-primary)] transition truncate">{settings.companyPhone}</a>
-                </div>
-              )}
-              {settings.companyAddress && (
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                  <span className="leading-snug">{settings.companyAddress}</span>
-                </div>
-              )}
+          {/* Links Section - 2/3 width on desktop */}
+          <div className="lg:w-2/3 grid grid-cols-2 sm:grid-cols-4 gap-8">
+            {/* Column 1 - Product */}
+            <div>
+              <h3 className="font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Product</h3>
+              <ul className="space-y-3">
+                <li><Link to="/analyze" className="text-slate-600 hover:text-primary text-sm transition">Resume Scanner</Link></li>
+                <li><Link to="/tools" className="text-slate-600 hover:text-primary text-sm transition">AI Tools</Link></li>
+                <li><Link to="/pricing" className="text-slate-600 hover:text-primary text-sm transition">Pricing</Link></li>
+              </ul>
             </div>
-          </div>
 
-          {/* Column 4 - Resources */}
-          <div>
-            <h3 className="font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Resources</h3>
-            <ul className="space-y-3">
-              <li><Link to="/faq" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">FAQ</Link></li>
-              <li><Link to="/help" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Help Center</Link></li>
-              <li><Link to="/legal?type=privacy" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Privacy Policy</Link></li>
-              <li><Link to="/legal?type=terms" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Terms of Service</Link></li>
-              <li><Link to="/legal?type=refund" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Refund Policy</Link></li>
-              <li><Link to="/legal?type=cookie" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Cookie Policy</Link></li>
-            </ul>
-          </div>
+            {/* Column 2 - Company */}
+            <div>
+              <h3 className="font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Company</h3>
+              <ul className="space-y-3 mb-6">
+                <li><Link to="/about" className="text-slate-600 hover:text-primary text-sm transition">About Us</Link></li>
+                {settings.contactPageEnabled !== false && (
+                  <li><Link to="/contact" className="text-slate-600 hover:text-primary text-sm transition">Contact Us</Link></li>
+                )}
+                <li>
+                  <button 
+                    type="button" 
+                    onClick={() => showFeedback("manual")} 
+                    className="text-slate-600 hover:text-primary text-sm transition cursor-pointer text-left"
+                  >
+                    Send Feedback
+                  </button>
+                </li>
+              </ul>
+              
+              <h3 className="font-bold text-slate-900 mb-3 text-sm tracking-wider uppercase">Contact</h3>
+              <div className="space-y-2 text-sm text-slate-600">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-slate-400 shrink-0" />
+                  <a href={`mailto:${supportEmail}`} className="hover:text-primary transition truncate max-w-full">{supportEmail}</a>
+                </div>
+                {settings.companyPhone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-slate-400 shrink-0" />
+                    <a href={`tel:${settings.companyPhone}`} className="hover:text-primary transition truncate max-w-full">{settings.companyPhone}</a>
+                  </div>
+                )}
+                {settings.companyAddress && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                    <span className="leading-snug">{settings.companyAddress}</span>
+                  </div>
+                )}
+              </div>
+            </div>
 
-          {/* Column 5 - Account */}
-          <div>
-            <h3 className="font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Account</h3>
-            <ul className="space-y-3 mb-6">
-              {!isAuthenticated ? (
-                <>
-                  <li><Link to="/login" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Login</Link></li>
-                  <li><Link to="/signup" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Signup</Link></li>
-                </>
-              ) : (
-                <>
-                  <li><Link to="/dashboard" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Dashboard</Link></li>
-                  <li><Link to="/account" className="text-slate-600 hover:text-[var(--color-primary)] text-sm transition">Account Settings</Link></li>
-                  <li>
-                    <button 
-                      onClick={() => signOut()} 
-                      className="text-slate-600 hover:text-red-600 text-sm transition cursor-pointer text-left w-full"
-                    >
-                      Logout
-                    </button>
-                  </li>
-                </>
-              )}
-            </ul>
+            {/* Column 3 - Resources */}
+            <div>
+              <h3 className="font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Resources</h3>
+              <ul className="space-y-3">
+                <li><Link to="/faq" className="text-slate-600 hover:text-primary text-sm transition">FAQ</Link></li>
+                <li><Link to="/help" className="text-slate-600 hover:text-primary text-sm transition">Help Center</Link></li>
+                <li><Link to="/legal?type=privacy" className="text-slate-600 hover:text-primary text-sm transition">Privacy Policy</Link></li>
+                <li><Link to="/legal?type=terms" className="text-slate-600 hover:text-primary text-sm transition">Terms of Service</Link></li>
+                <li><Link to="/legal?type=refund" className="text-slate-600 hover:text-primary text-sm transition">Refund Policy</Link></li>
+                <li><Link to="/legal?type=cookie" className="text-slate-600 hover:text-primary text-sm transition">Cookie Policy</Link></li>
+              </ul>
+            </div>
 
-            {/* Social Links */}
-            <div className="flex flex-wrap gap-3 mt-6">
-              {settings.socialFacebook && (
-                <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[var(--color-primary)] transition">
-                  <Facebook className="w-5 h-5" />
-                </a>
-              )}
-              {settings.socialTwitter && (
-                <a href={settings.socialTwitter} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[var(--color-primary)] transition">
-                  <Twitter className="w-5 h-5" />
-                </a>
-              )}
-              {settings.socialInstagram && (
-                <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[var(--color-primary)] transition">
-                  <Instagram className="w-5 h-5" />
-                </a>
-              )}
-              {settings.socialLinkedin && (
-                <a href={settings.socialLinkedin} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[var(--color-primary)] transition">
-                  <Linkedin className="w-5 h-5" />
-                </a>
-              )}
-              {settings.socialGithub && (
-                <a href={settings.socialGithub} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[var(--color-primary)] transition">
-                  <Github className="w-5 h-5" />
-                </a>
-              )}
-              {settings.socialYoutube && (
-                <a href={settings.socialYoutube} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[var(--color-primary)] transition">
-                  <Youtube className="w-5 h-5" />
-                </a>
-              )}
+            {/* Column 4 - Account */}
+            <div>
+              <h3 className="font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Account</h3>
+              <ul className="space-y-3 mb-6">
+                {!isAuthenticated ? (
+                  <>
+                    <li><Link to="/login" className="text-slate-600 hover:text-primary text-sm transition">Login</Link></li>
+                    <li><Link to="/signup" className="text-slate-600 hover:text-primary text-sm transition">Signup</Link></li>
+                  </>
+                ) : (
+                  <>
+                    <li><Link to="/dashboard" className="text-slate-600 hover:text-primary text-sm transition">Dashboard</Link></li>
+                    <li><Link to="/account" className="text-slate-600 hover:text-primary text-sm transition">Account Settings</Link></li>
+                    <li>
+                      <button 
+                        onClick={() => signOut()} 
+                        className="text-slate-600 hover:text-red-600 text-sm transition cursor-pointer text-left w-full"
+                      >
+                        Logout
+                      </button>
+                    </li>
+                  </>
+                )}
+              </ul>
+
+              {/* Social Links */}
+              <div className="flex flex-wrap gap-3 mt-6">
+                {settings.socialFacebook && (
+                  <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-primary transition">
+                    <Facebook className="w-5 h-5" />
+                  </a>
+                )}
+                {settings.socialTwitter && (
+                  <a href={settings.socialTwitter} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-primary transition">
+                    <Twitter className="w-5 h-5" />
+                  </a>
+                )}
+                {settings.socialInstagram && (
+                  <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-primary transition">
+                    <Instagram className="w-5 h-5" />
+                  </a>
+                )}
+                {settings.socialLinkedin && (
+                  <a href={settings.socialLinkedin} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-primary transition">
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                )}
+                {settings.socialGithub && (
+                  <a href={settings.socialGithub} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-primary transition">
+                    <Github className="w-5 h-5" />
+                  </a>
+                )}
+                {settings.socialYoutube && (
+                  <a href={settings.socialYoutube} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-primary transition">
+                    <Youtube className="w-5 h-5" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>
