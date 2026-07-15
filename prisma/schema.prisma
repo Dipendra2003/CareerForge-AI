@@ -1,0 +1,1063 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  email              String    @unique
+  name               String?
+  avatarUrl          String?
+  passwordHash       String? // Null for Google OAuth users
+  role               String    @default("user") // "user", "admin"
+  plan               String    @default("free") // "free", "pro", "annual"
+  scansUsedThisMonth Int       @default(0)
+  stripeCustomerId   String?   @unique
+  subscriptionId     String?
+  subscriptionEnd    DateTime?
+  hasHadTrial        Boolean   @default(false)
+  googleId           String?   @unique
+  isEmailVerified    Boolean   @default(false)
+  isSuspended        Boolean   @default(false)
+  suspensionReason   String?
+  suspendedAt        DateTime?
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Auth Relations
+  refreshTokens      RefreshToken[]
+  emailVerifications EmailVerification[]
+  passwordResets     PasswordReset[]
+
+  // Application Relations
+  scans Scan[]
+
+  // Audit Relations
+  actorActions         AuditLog[]            @relation("ActorAction")
+  targetActions        AuditLog[]            @relation("TargetAction")
+  contactReplies       ContactReply[]
+  workspaceFolders     WorkspaceFolder[]
+  resumes              Resume[]
+  aioutputs            AIOutput[]
+  coverLetters         CoverLetter[]
+  interviewPreps       InterviewPrep[]
+  userFeatureOverrides UserFeatureOverride[]
+  userQuotaOverride    UserQuotaOverride?
+
+  // Performance indexes for analytics queries
+  @@index([lastLoginAt]) // For active users query
+  @@index([createdAt])   // For signup time-series
+  @@index([plan])        // For plan distribution
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  hashedToken String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  otp       String? // Made optional for backward compatibility if any, but will populate
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  otp       String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Scan {
+  id                   String   @id @default(uuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  atsScore             Int?
+  jobTitle             String?
+  company              String?
+  resumeText           String?
+  jobDescription       String?
+  matchedKeywords      String[]
+  missingKeywords      String[]
+  breakdown            Json?
+  suggestions          Json[]
+  fullResult           Json?
+  resumeFileUrl        String?
+  resumeFilePublicId   String?
+  resumeFileName       String?
+  resumeFileSize       Int?
+  resumeMimeType       String?
+  optimizedPdfUrl      String?
+  optimizedPdfPublicId String?
+  optimizedPdfFileName String?
+  optimizedPdfSize     Int?
+  createdAt            DateTime @default(now())
+
+  structuredResume Json?
+  structuredJD     Json?
+  engineVersion    String? @default("1.0.0")
+  scoreVersion     Int?    @default(1)
+  resumeHash       String?
+  parserVersion    String? @default("1.0.0")
+
+  coverLetters   CoverLetter[]
+  interviewPreps InterviewPrep[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([atsScore])
+}
+
+model CoverLetter {
+  id                String           @id @default(uuid())
+  scanId            String
+  scan              Scan             @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  content           String?
+  tone              String? // 'professional', 'friendly', 'confident'
+  isFavorite        Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  workspaceFolder   WorkspaceFolder? @relation(fields: [workspaceFolderId], references: [id])
+  workspaceFolderId String?
+  user              User?            @relation(fields: [userId], references: [id])
+  userId            String?
+
+  @@index([scanId])
+  @@index([userId])
+}
+
+model InterviewPrep {
+  id             String           @id @default(uuid())
+  userId         String?
+  user           User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scanId         String?
+  scan           Scan?            @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  folderId       String?
+  folder         WorkspaceFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  name           String?
+  questions      Json[]
+  redFlags       Json[]
+  questionsToAsk Json[]
+  isFavorite     Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+
+  @@index([scanId])
+  @@index([userId])
+}
+
+model Plan {
+  id                   String        @id @default(uuid())
+  name                 String        @unique
+  slug                 String        @unique
+  description          String?
+  monthlyPrice         Float
+  annualPrice          Float
+  currency             String        @default("usd")
+  durationDays         Int           @default(30)
+  trialDays            Int           @default(0)
+  stripeMonthlyPriceId String?
+  stripeAnnualPriceId  String?
+  isActive             Boolean       @default(true)
+  isRecommended        Boolean       @default(false)
+  sortOrder            Int           @default(0)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  features             PlanFeature[]
+}
+
+model Feature {
+  id                   String                @id @default(uuid())
+  name                 String
+  key                  String                @unique
+  description          String?
+  category             String?
+  isActive             Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  plans                PlanFeature[]
+  userFeatureOverrides UserFeatureOverride[]
+}
+
+model PlanFeature {
+  id        String   @id @default(uuid())
+  planId    String
+  plan      Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  featureId String
+  feature   Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([planId, featureId])
+}
+
+model UserFeatureOverride {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  featureId String
+  feature   Feature   @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  action    String    @default("grant") // "grant", "revoke"
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([userId, featureId])
+}
+
+model UserQuotaOverride {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  extraScans Int       @default(0)
+  resetDate  DateTime? // Next reset date if not monthly
+  createdAt  DateTime  @default(now())
+}
+
+model SystemSetting {
+  id                     String  @id @default(uuid())
+  guestScanLimit         Int     @default(1)
+  freeScanLimit          Int     @default(3)
+  proScanLimit           Int     @default(999999)
+  annualScanLimit        Int     @default(999999)
+  maxResumeUploadSize    Int     @default(5242880) // 5MB
+  maxResumeCharacters    Int     @default(20000)
+  maxJDCharacters        Int     @default(10000)
+  maxAIRequestsPerMinute Int     @default(20)
+  maxUploadsPerDay       Int     @default(50)
+  allowGuestScans        Boolean @default(true)
+  allowSignup            Boolean @default(true)
+  allowGoogleLogin       Boolean @default(true)
+  allowEmailLogin        Boolean @default(true)
+
+  // Phase 3 Extensions (Company & Branding)
+  companyName        String  @default("ResumeAI")
+  companyTagline     String?
+  companyDescription String?
+  supportEmail       String  @default("support@example.com")
+  salesEmail         String?
+  supportPhone       String?
+  companyWebsite     String?
+  companyAddress     String?
+
+  // Branding
+  logoUrl         String?
+  faviconUrl      String?
+  primaryColor    String  @default("#4f46e5")
+  secondaryColor  String  @default("#ec4899")
+  footerText      String?
+  footerCopyright String?
+
+  // Contact
+  businessHours      String?
+  contactPageEnabled Boolean @default(true)
+
+  // Social Links
+  socialFacebook  String?
+  socialTwitter   String?
+  socialLinkedin  String?
+  socialGithub    String?
+  socialYoutube   String?
+  socialInstagram String?
+
+  // Localization
+  defaultCurrency String @default("USD")
+  timezone        String @default("UTC")
+  defaultLanguage String @default("en")
+  dateFormat      String @default("MM/DD/YYYY")
+
+  // System
+  maintenanceMode        Boolean @default(false)
+  maintenanceMessage     String?
+  announcementBanner     String?
+  announcementIsActive   Boolean @default(false)
+  announcementColor      String  @default("#3b82f6")
+  announcementButtonText String?
+  announcementButtonUrl  String?
+  auditLogRetentionDays  Int?    @default(90) // null means forever
+  enableAutomaticTax     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AISetting {
+  id                  String  @id @default(uuid())
+  geminiModel         String  @default("gemini-1.5-flash")
+  temperature         Float   @default(0.7)
+  topP                Float   @default(0.95)
+  topK                Int     @default(40)
+  maxTokens           Int     @default(8192)
+  retryCount          Int     @default(3)
+  timeout             Int     @default(30)
+  enableStreaming     Boolean @default(false)
+  enableLogging       Boolean @default(true)
+  enablePromptHistory Boolean @default(false)
+  isActive            Boolean @default(true)
+
+  // Enterprise HA & Failover Settings
+  enableFailover          Boolean @default(true)
+  failoverRetryCount      Int     @default(3)
+  failoverCooldownMins    Int     @default(5)
+  healthCheckIntervalMins Int     @default(15)
+  autoRecovery            Boolean @default(true)
+  autoDiscovery           Boolean @default(true)
+  preferredModel          String?
+
+  // legacy prompt fields - can be removed or kept for fallback, let's keep them but use AIPrompt
+  systemPrompt         String @default("You are a professional ATS system analyzer and career coach.")
+  atsPrompt            String @default("Analyze this resume and job description. Provide ATS score, keyword matches, missing keywords, and suggestions.")
+  coverLetterPrompt    String @default("Generate a professional cover letter based on this resume and job description.")
+  bulletRewriterPrompt String @default("Rewrite this resume bullet point to be more impactful and metric-driven.")
+  linkedinPrompt       String @default("Optimize this resume for a LinkedIn profile summary and experience section.")
+  interviewPrompt      String @default("Generate likely interview questions and preparation advice for this job description and resume.")
+
+  isAtsEnabled            Boolean @default(true)
+  isCoverLetterEnabled    Boolean @default(true)
+  isBulletRewriterEnabled Boolean @default(true)
+  isLinkedinEnabled       Boolean @default(true)
+  isInterviewEnabled      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AIPrompt {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  content     String
+  description String?
+  version     Int      @default(1)
+  isActive    Boolean  @default(true)
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+model EmailTemplate {
+  id        String   @id @default(uuid())
+  key       String   @unique // legacy, acts as slug
+  name      String
+  category  String   @default("transactional")
+  subject   String
+  htmlBody  String
+  textBody  String
+  variables String   @default("[]")
+  version   Int      @default(1)
+  isActive  Boolean  @default(true)
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  emailLogs EmailLog[]
+}
+
+model EmailLog {
+  id           String         @id @default(uuid())
+  templateId   String?
+  template     EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  recipient    String
+  subject      String
+  status       String
+  provider     String         @default("smtp")
+  errorMessage String?
+  sentAt       DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  actorId       String?
+  actorName     String?
+  actorEmail    String?
+  actor         User?    @relation("ActorAction", fields: [actorId], references: [id], onDelete: SetNull)
+  targetUserId  String?
+  targetUser    User?    @relation("TargetAction", fields: [targetUserId], references: [id], onDelete: SetNull)
+  targetType    String?
+  targetId      String?
+  module        String?
+  action        String
+  oldValue      Json?
+  newValue      Json?
+  ipAddress     String?
+  userAgent     String?
+  requestMethod String?
+  endpoint      String?
+  status        String?
+  description   String?
+  createdAt     DateTime @default(now())
+
+  @@index([actorId])
+  @@index([targetUserId])
+  @@index([module])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model FAQCategory {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  description  String?
+  displayOrder Int      @default(0)
+  faqs         FAQ[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model FAQ {
+  id           String       @id @default(uuid())
+  question     String
+  answer       String
+  slug         String       @unique
+  categoryId   String?
+  category     FAQCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  displayOrder Int          @default(0)
+  isPublished  Boolean      @default(false)
+  isFeatured   Boolean      @default(false)
+  viewCount    Int          @default(0)
+  createdBy    String?
+  updatedBy    String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([categoryId])
+  @@index([isPublished])
+  @@index([isFeatured])
+}
+
+model ContactMessage {
+  id         String         @id @default(uuid())
+  name       String
+  email      String
+  phone      String?
+  subject    String?
+  category   String?
+  message    String
+  status     String         @default("New") // "New", "Open", "In Progress", "Waiting", "Resolved", "Closed"
+  priority   String         @default("Medium") // "Low", "Medium", "High", "Urgent"
+  assignedTo String? // ID or name of assigned admin
+  repliedAt  DateTime?
+  closedAt   DateTime?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  replies    ContactReply[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model ContactReply {
+  id        String         @id @default(uuid())
+  messageId String
+  message   ContactMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  adminId   String?
+  admin     User?          @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  subject   String?
+  reply     String
+  createdAt DateTime       @default(now())
+
+  @@index([messageId])
+  @@index([adminId])
+}
+
+// --- Landing Page CMS Models ---
+
+model LandingSection {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  isVisible       Boolean  @default(true)
+  displayOrder    Int      @default(0)
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model LandingHero {
+  id                  String   @id @default(uuid())
+  title               String
+  subtitle            String?
+  description         String?
+  primaryButtonText   String?
+  primaryButtonUrl    String?
+  secondaryButtonText String?
+  secondaryButtonUrl  String?
+  imageUrl            String?
+  background          String?
+  isPublished         Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model LandingStatistic {
+  id           String   @id @default(uuid())
+  title        String
+  subtitle     String?
+  description  String?
+  icon         String?
+  displayOrder Int      @default(0)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model LandingFeature {
+  id           String   @id @default(uuid())
+  title        String
+  subtitle     String?
+  description  String?
+  imageUrl     String?
+  icon         String?
+  isFeatured   Boolean  @default(false)
+  displayOrder Int      @default(0)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model LandingPartner {
+  id           String   @id @default(uuid())
+  title        String
+  imageUrl     String?
+  websiteUrl   String?
+  displayOrder Int      @default(0)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model LandingTestimonial {
+  id           String   @id @default(uuid())
+  title        String
+  subtitle     String?
+  company      String?
+  description  String?
+  imageUrl     String?
+  rating       Int      @default(5)
+  isFeatured   Boolean  @default(false)
+  displayOrder Int      @default(0)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model LandingCTA {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  buttonText   String?
+  buttonUrl    String?
+  background   String?
+  displayOrder Int      @default(0)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model LandingNewsletter {
+  id          String   @id @default(uuid())
+  title       String
+  subtitle    String?
+  buttonText  String?
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// --- SEO Management ---
+
+model SEOPage {
+  id                 String   @id @default(uuid())
+  pageKey            String   @unique
+  pageName           String
+  title              String?
+  description        String?
+  keywords           String?
+  canonicalUrl       String?
+  robots             String?
+  ogTitle            String?
+  ogDescription      String?
+  ogImage            String?
+  twitterTitle       String?
+  twitterDescription String?
+  twitterImage       String?
+  schemaType         String?
+  schemaJson         String?
+  favicon            String?
+  isIndexed          Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model SEOSetting {
+  id                String   @id @default(uuid())
+  robotsTxtDisallow String?
+  robotsTxtAllow    String?
+  robotsTxtSitemap  String?
+  globalFavicon     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// --- Notification Center ---
+
+model Notification {
+  id            String    @id @default(uuid())
+  userId        String? // nullable for broadcast
+  title         String
+  message       String
+  type          String // Success, Warning, Error, Info, Security, Billing, AI, System, Announcement, Maintenance, Promotion
+  category      String?
+  priority      String    @default("low") // low, normal, high
+  icon          String?
+  actionUrl     String?
+  actionText    String?
+  isRead        Boolean   @default(false)
+  isArchived    Boolean   @default(false)
+  readByIds     String[]  @default([])
+  archivedByIds String[]  @default([])
+  expiresAt     DateTime?
+  createdBy     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
+  @@index([userId, isArchived])
+  @@index([type])
+  @@index([category])
+  @@index([priority])
+}
+
+model NotificationPreference {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  emailEnabled       Boolean  @default(true)
+  inAppEnabled       Boolean  @default(true)
+  marketingEnabled   Boolean  @default(true)
+  billingEnabled     Boolean  @default(true)
+  securityEnabled    Boolean  @default(true)
+  aiEnabled          Boolean  @default(true)
+  systemEnabled      Boolean  @default(true)
+  maintenanceEnabled Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model NotificationSchedule {
+  id             String   @id @default(uuid())
+  title          String
+  message        String
+  audience       String
+  audienceQuery  String?
+  type           String   @default("Info")
+  category       String?
+  priority       String   @default("normal")
+  icon           String?
+  actionUrl      String?
+  actionText     String?
+  sendAt         DateTime
+  recurring      Boolean  @default(false)
+  recurrenceRule String?
+  status         String   @default("pending") // pending, active, completed, cancelled
+  createdBy      String?
+  createdAt      DateTime @default(now())
+
+  @@index([status, sendAt])
+  @@index([status])
+}
+
+model SystemLock {
+  key       String   @id
+  lockedAt  DateTime @default(now())
+  expiresAt DateTime
+}
+
+// --- Billing Management ---
+
+model Coupon {
+  id                String    @id @default(uuid())
+  code              String    @unique
+  title             String?
+  description       String?
+  discountType      String // "percentage" or "fixed"
+  discountValue     Float
+  maxDiscount       Float?
+  minimumPurchase   Float?
+  usageLimit        Int?
+  usedCount         Int       @default(0)
+  applicablePlans   String[] // array of planIds
+  duration          String    @default("once") // "once", "repeating", "forever"
+  durationInMonths  Int?
+  firstPurchaseOnly Boolean   @default(false)
+  isMonthlyOnly     Boolean   @default(false)
+  isAnnualOnly      Boolean   @default(false)
+  stackable         Boolean   @default(false)
+  validFrom         DateTime?
+  validUntil        DateTime?
+  isActive          Boolean   @default(true)
+  createdBy         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Promotion {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  banner      String?
+  startDate   DateTime?
+  endDate     DateTime?
+  plans       String[] // array of planIds
+  couponId    String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Invoice {
+  id              String   @id @default(uuid())
+  userId          String
+  stripeInvoiceId String?  @unique
+  invoiceNumber   String?
+  amount          Float
+  tax             Float    @default(0)
+  discount        Float    @default(0)
+  total           Float
+  currency        String   @default("USD")
+  paymentStatus   String   @default("paid") // paid, pending, failed, refunded
+  paymentMethod   String?
+  invoiceUrl      String?
+  pdfUrl          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Refund {
+  id             String   @id @default(uuid())
+  invoiceId      String
+  stripeRefundId String?  @unique
+  amount         Float
+  reason         String?
+  status         String   @default("pending") // pending, approved, rejected, completed
+  requestedBy    String?
+  approvedBy     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([invoiceId])
+}
+
+model BillingHistory {
+  id            String   @id @default(uuid())
+  userId        String
+  action        String // upgraded, downgraded, cancelled, renewed, trial_started
+  previousPlan  String?
+  newPlan       String?
+  previousPrice Float?
+  newPrice      Float?
+  source        String? // stripe, admin, system
+  createdBy     String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([action, createdAt]) // For churn rate calculations
+}
+
+model TrialPlan {
+  id      String  @id @default(uuid())
+  planId  String  @unique // e.g. "pro"
+  days    Int     @default(14)
+  enabled Boolean @default(false)
+}
+
+// --- Enterprise Security Center ---
+
+model SecurityAlert {
+  id        String   @id @default(uuid())
+  userId    String?
+  type      String // New Login, Suspicious Login, etc.
+  severity  String // Info, Warning, Critical
+  message   String
+  resolved  Boolean  @default(false)
+  ip        String?
+  device    String?
+  location  String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model LoginHistory {
+  id              String    @id @default(uuid())
+  userId          String
+  ip              String?
+  browser         String?
+  os              String?
+  device          String?
+  country         String?
+  city            String?
+  latitude        Float?
+  longitude       Float?
+  loginTime       DateTime  @default(now())
+  logoutTime      DateTime?
+  sessionDuration Int? // in seconds
+  success         Boolean   @default(true)
+  failureReason   String?
+
+  @@index([userId])
+}
+
+model UserSession {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String?  @unique
+  device       String?
+  browser      String?
+  os           String?
+  ip           String?
+  createdAt    DateTime @default(now())
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+  revoked      Boolean  @default(false)
+
+  @@index([userId])
+}
+
+model TrustedDevice {
+  id         String   @id @default(uuid())
+  userId     String
+  deviceHash String // A hash to identify the device
+  nickname   String?
+  browser    String?
+  os         String?
+  ip         String?
+  lastUsed   DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model BackupCode {
+  id        String    @id @default(uuid())
+  userId    String
+  code      String    @unique // Hashed or plain depending on security need
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model ApiKey {
+  id        String    @id @default(uuid())
+  userId    String
+  keyHash   String    @unique // Hashed version of the key
+  name      String?
+  scopes    String[]
+  isActive  Boolean   @default(true)
+  lastUsed  DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model BlockedIP {
+  id        String    @id @default(uuid())
+  ip        String    @unique
+  reason    String?
+  blockedAt DateTime  @default(now())
+  expiresAt DateTime?
+}
+
+model PasswordPolicy {
+  id                    String   @id @default(uuid())
+  minLength             Int      @default(8)
+  requireUppercase      Boolean  @default(true)
+  requireLowercase      Boolean  @default(true)
+  requireNumbers        Boolean  @default(true)
+  requireSymbols        Boolean  @default(true)
+  passwordExpiryDays    Int? // Number of days until password expires
+  passwordHistoryCount  Int? // Prevent using last N passwords
+  maxFailedAttempts     Int      @default(5)
+  lockDurationMinutes   Int      @default(30)
+  sessionTimeoutMinutes Int      @default(1440)
+  jwtExpiryMinutes      Int      @default(15)
+  refreshExpiryDays     Int      @default(7)
+  updatedAt             DateTime @updatedAt
+}
+
+model SecuritySetting {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String? // e.g. for TOTP
+  loginEmailAlerts Boolean  @default(true)
+  newDeviceAlerts  Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+}
+
+model FailedLoginAttempt {
+  id         String   @id @default(uuid())
+  email      String
+  ip         String?
+  browser    String?
+  reason     String?
+  timestamp  DateTime @default(now())
+  autoLocked Boolean  @default(false)
+
+  @@index([email])
+}
+
+model ConnectedAccount {
+  id        String   @id @default(uuid())
+  userId    String
+  provider  String
+  accountId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, accountId])
+  @@index([userId])
+}
+
+// Workspace Models
+
+model WorkspaceFolder {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      String // 'resume', 'cover_letter', 'ai_output'
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resumes        Resume[]
+  coverLetters   CoverLetter[]
+  aiOutputs      AIOutput[]
+  interviewPreps InterviewPrep[]
+
+  @@index([userId])
+}
+
+model Resume {
+  id           String           @id @default(uuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folderId     String?
+  folder       WorkspaceFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  name         String
+  content      String?
+  fileUrl      String?
+  filePublicId String?
+  fileSize     Int?
+  mimeType     String?
+  isFavorite   Boolean          @default(false)
+  isArchived   Boolean          @default(false)
+  tags         String[]
+  version      Int              @default(1)
+  originalId   String? // for tracking duplicates/versions
+  resumeHash   String? // for duplicate detection
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+model AIOutput {
+  id         String           @id @default(uuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folderId   String?
+  folder     WorkspaceFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  type       String // 'bullet_rewriter', 'linkedin_optimizer', 'career_path'
+  prompt     String?
+  content    String
+  isFavorite Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+// System Metrics
+model ApiMetric {
+  id       String   @id @default(uuid())
+  endpoint String
+  method   String
+  count    Int      @default(1)
+  date     DateTime @db.Date
+
+  @@unique([endpoint, method, date])
+}
+
+// Enterprise AI Analytics
+model AIModelAnalytics {
+  id            String    @id @default(uuid())
+  provider      String    @default("gemini")
+  modelName     String    @unique
+  totalRequests Int       @default(0)
+  successCount  Int       @default(0)
+  failureCount  Int       @default(0)
+  failoverCount Int       @default(0)
+  recoveryCount Int       @default(0)
+  avgLatencyMs  Float     @default(0.0)
+  lastSuccess   DateTime?
+  lastFailure   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([provider])
+}
+
+// --- Billing Infrastructure ---
+
+model ProcessedWebhook {
+  id        String   @id @default(uuid())
+  eventId   String   @unique
+  createdAt DateTime @default(now())
+}
+
+model FinancialAnalyticsCache {
+  id           String   @id @default("current") // Singleton record
+  mrr          Float    @default(0.0)
+  arr          Float    @default(0.0)
+  activeSubs   Int      @default(0)
+  churnRate    Float    @default(0.0)
+  ltv          Float    @default(0.0)
+  arpu         Float    @default(0.0)
+  lastSyncedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
