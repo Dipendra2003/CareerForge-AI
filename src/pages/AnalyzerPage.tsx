@@ -109,11 +109,12 @@ export default function AnalyzerPage({ onScanCompleted, currentUser, onUpgrade, 
           optimizedPdfSize: fileInfo.size
         });
       } catch (uploadError) {
-        console.warn("Failed to backup optimized PDF to cloud, but local download succeeded.", uploadError);
-      }
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
 
     } catch (error: any) {
-      console.error("Failed to generate PDF:", error);
+      
       toast?.error("Failed to generate PDF document");
     } finally {
       setExportingPdf(false);
@@ -330,7 +331,7 @@ export default function AnalyzerPage({ onScanCompleted, currentUser, onUpgrade, 
              toast.error(error || "Analysis failed", "Scan Failed");
           }
         } catch (pollErr) {
-           console.error("Poll error", pollErr);
+           
            if (attempt > 30) { // Timeout after ~1 minute
               clearInterval(pollInterval);
               isDone = true;
@@ -341,7 +342,7 @@ export default function AnalyzerPage({ onScanCompleted, currentUser, onUpgrade, 
       }, 2000);
 
     } catch (err: any) {
-      if (err?.response?.status !== 401) console.error(err);
+      
       stepIntervals.forEach(clearTimeout);
       const errMsg = err.response?.data?.message || err.response?.data?.error || "Failed to communicate with our secure AI backend. Please verify that your dev server is responsive.";
       if (err.response?.data?.quotaError) {

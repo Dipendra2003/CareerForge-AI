@@ -47,7 +47,14 @@ router.get("/logins", async (req, res) => {
       orderBy: { loginTime: 'desc' },
       take: 100
     });
-    res.json(history);
+    const userIds = [...new Set(history.map(h => h.userId))];
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, email: true }
+    });
+    const userMap = users.reduce((acc: any, u) => ({ ...acc, [u.id]: u }), {});
+    const historyWithUser = history.map(h => ({ ...h, user: userMap[h.userId] }));
+    res.json(historyWithUser);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
@@ -60,7 +67,14 @@ router.get("/sessions", async (req, res) => {
       orderBy: { lastActivity: 'desc' },
       take: 100
     });
-    res.json(sessions);
+    const userIds = [...new Set(sessions.map(s => s.userId))];
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, email: true }
+    });
+    const userMap = users.reduce((acc: any, u) => ({ ...acc, [u.id]: u }), {});
+    const sessionsWithUser = sessions.map(s => ({ ...s, user: userMap[s.userId] }));
+    res.json(sessionsWithUser);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }

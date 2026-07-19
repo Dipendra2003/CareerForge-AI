@@ -25,7 +25,8 @@ export default function NotificationsTab() {
       const { data } = await apiClient.get("/user/notifications/preferences");
       if (data) setPreferences(data);
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setLoading(false);
     }
@@ -38,7 +39,7 @@ export default function NotificationsTab() {
       await apiClient.put("/user/notifications/preferences", newPrefs);
       toast.success("Notification preferences updated successfully!", "Preferences Saved");
     } catch (err) {
-      console.error("Failed to save preference", err);
+      
       // Revert on failure
       setPreferences(preferences);
       toast.error("Failed to save notification preferences.", "Preferences Error");

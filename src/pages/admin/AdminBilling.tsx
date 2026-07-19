@@ -16,35 +16,50 @@ export default function AdminBilling() {
     try {
       const res = await apiClient.get('/admin/billing/stats');
       setStats(res.data);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const fetchCoupons = async () => {
     try {
       const res = await apiClient.get('/admin/billing/coupons');
       setCoupons(res.data);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const fetchPromotions = async () => {
     try {
       const res = await apiClient.get('/admin/billing/promotions');
       setPromotions(res.data);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
   
   const fetchInvoices = async () => {
     try {
       const res = await apiClient.get('/admin/billing/invoices');
       setInvoices(res.data);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const fetchRefunds = async () => {
     try {
       const res = await apiClient.get('/admin/billing/refunds');
       setRefunds(res.data);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   useEffect(() => {
@@ -73,7 +88,10 @@ export default function AdminBilling() {
       await apiClient.post('/admin/billing/coupons', { ...couponForm, usageLimit: couponForm.usageLimit ? Number(couponForm.usageLimit) : undefined });
       fetchCoupons();
       setShowCouponModal(false);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
   
   const createPromotion = async () => setShowPromoModal(true);
@@ -82,7 +100,10 @@ export default function AdminBilling() {
       await apiClient.post('/admin/billing/promotions', promoForm);
       fetchPromotions();
       setShowPromoModal(false);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const deletePromotion = async (id: string) => {
@@ -90,7 +111,10 @@ export default function AdminBilling() {
     try {
       await apiClient.delete(`/admin/billing/promotions/${id}`);
       fetchPromotions();
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const deleteCoupon = async (id: string) => {
@@ -98,7 +122,10 @@ export default function AdminBilling() {
     try {
       await apiClient.delete(`/admin/billing/coupons/${id}`);
       fetchCoupons();
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const toggleTrial = async (planId: string, currentDays: number, currentEnabled: boolean) => {
@@ -111,14 +138,20 @@ export default function AdminBilling() {
       await apiClient.put('/admin/billing/trials', [trialForm]);
       fetchTrials();
       setShowTrialModal(false);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const fetchTrials = async () => {
     try {
       const res = await apiClient.get('/admin/billing/trials');
       setTrials(res.data);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
   
   useEffect(() => {
@@ -135,7 +168,10 @@ export default function AdminBilling() {
       fetchRefunds();
       fetchInvoices();
       setShowRefundModal(false);
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const rejectRefund = async (id: string) => {
@@ -143,7 +179,10 @@ export default function AdminBilling() {
     try {
       await apiClient.put(`/admin/billing/refunds/${id}/reject`);
       fetchRefunds();
-    } catch(e){}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const tabs = [

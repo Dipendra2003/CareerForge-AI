@@ -58,7 +58,8 @@ export default function NotificationsPage() {
       const response = await apiClient.get(`/notifications?${params.toString()}`);
       setData(response.data);
     } catch (error) {
-      console.error(error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,10 @@ export default function NotificationsPage() {
         data: prev.data.map(n => n.id === id ? { ...n, isRead: true } : n)
       } : null);
       refresh();
-    } catch (e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const handleArchive = async (id: string) => {
@@ -87,7 +91,10 @@ export default function NotificationsPage() {
         data: prev.data.filter(n => n.id !== id)
       } : null);
       refresh();
-    } catch (e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -98,7 +105,10 @@ export default function NotificationsPage() {
         data: prev.data.filter(n => n.id !== id)
       } : null);
       refresh();
-    } catch (e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const handleMarkAllAsReadLocal = async () => {

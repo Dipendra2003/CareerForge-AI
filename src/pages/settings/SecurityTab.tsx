@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
-import { Shield, Key, Smartphone, Globe, Power } from "lucide-react";
+import { Shield, Key, Smartphone, Globe, Power, HelpCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
@@ -12,6 +12,9 @@ export default function SecurityTab() {
   const [twoFaSecret, setTwoFaSecret] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [verifyCode, setVerifyCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -22,7 +25,8 @@ export default function SecurityTab() {
       const response = await apiClient.get("/user/security/dashboard");
       setData(response.data);
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setLoading(false);
     }
@@ -33,8 +37,6 @@ export default function SecurityTab() {
       if (enable) {
         const response = await apiClient.post("/user/security/2fa/enable", {});
         setTwoFaSecret(response.data.secret);
-        setBackupCodes(response.data.backupCodes);
-        fetchData();
         toast.info("Two-factor authentication setup generated. Please scan the QR code to proceed.", "2FA Setup");
       } else {
         if (!confirm('Are you sure you want to disable 2FA?')) return;
@@ -46,6 +48,26 @@ export default function SecurityTab() {
       }
     } catch (e) {
       toast.error("Failed to update 2FA settings. Please try again.", "Security Error");
+    }
+  };
+
+  const verify2FA = async () => {
+    if (!verifyCode || verifyCode.length < 6) {
+      toast.error("Please enter a valid 6-digit code.", "Validation Error");
+      return;
+    }
+    setIsVerifying(true);
+    try {
+      const response = await apiClient.post("/user/security/2fa/verify", { code: verifyCode });
+      setBackupCodes(response.data.backupCodes);
+      setTwoFaSecret(null);
+      setVerifyCode("");
+      fetchData();
+      toast.success("Two-factor authentication successfully enabled!", "Security Updated");
+    } catch (e) {
+      toast.error("Invalid verification code. Please try again.", "Verification Failed");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -71,13 +93,43 @@ export default function SecurityTab() {
     }
   };
 
+  const revokeAllOtherSessions = async () => {
+    if (!confirm('Log out of all other active sessions?')) return;
+    try {
+      await apiClient.post("/user/security/sessions/revoke-all?exceptCurrent=true", {});
+      fetchData();
+      toast.success("All other sessions have been terminated.", "Sessions Revoked");
+    } catch(e) {
+      toast.error("Failed to revoke sessions.", "Security Error");
+    }
+  };
+
   if (loading || !data) return <div className="p-4">Loading security settings...</div>;
 
   return (
     <div className="space-y-8 max-w-4xl">
-      <div>
-        <h2 className="text-xl font-bold text-slate-900">Security Center</h2>
-        <p className="text-sm text-slate-500">Manage your account security, passwords, and active sessions.</p>
+      <div className="flex items-center gap-2 relative">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            Security Center
+            <button 
+              onMouseEnter={() => setShowHelp(true)} 
+              onMouseLeave={() => setShowHelp(false)}
+              className="text-slate-400 hover:text-slate-600 transition"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </button>
+          </h2>
+          <p className="text-sm text-slate-500">Manage your account security, passwords, and active sessions.</p>
+        </div>
+        
+        {showHelp && (
+          <div className="absolute top-10 left-0 bg-slate-900 text-white p-4 rounded-xl shadow-xl w-80 z-10 text-xs leading-relaxed">
+            <h4 className="font-bold mb-2">About Security Center</h4>
+            <p className="mb-2"><strong>2FA (Two-Factor Authentication):</strong> Adds an extra layer of security. Use an app like Google Authenticator or Authy to scan the QR code and generate temporary login codes.</p>
+            <p><strong>Active Sessions:</strong> Shows devices currently logged into your account. If you see a device you don't recognize, revoke it immediately.</p>
+          </div>
+        )}
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6">
@@ -104,11 +156,32 @@ export default function SecurityTab() {
 
         {twoFaSecret && (
           <div className="mt-4 p-5 bg-slate-50 rounded-2xl border border-slate-200">
-            <p className="text-sm font-bold text-slate-900 mb-3">Scan this QR Code with your Authenticator App</p>
+            <p className="text-sm font-bold text-slate-900 mb-3">1. Scan this QR Code with your Authenticator App</p>
             <div className="bg-white p-3 inline-block rounded-xl border border-slate-200 shadow-sm">
               <QRCodeSVG value={`otpauth://totp/CareerForge AI?secret=${twoFaSecret}`} size={160} />
             </div>
             <p className="text-xs text-slate-500 mt-3 font-mono bg-white px-3 py-1.5 rounded-lg border border-slate-200 inline-block">{twoFaSecret}</p>
+            
+            <div className="mt-6 border-t border-slate-200 pt-5">
+              <p className="text-sm font-bold text-slate-900 mb-3">2. Enter the 6-digit verification code</p>
+              <div className="flex items-center gap-3">
+                <input 
+                  type="text" 
+                  maxLength={6}
+                  placeholder="000000"
+                  value={verifyCode}
+                  onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ''))}
+                  className="px-4 py-2 bg-white border border-slate-300 rounded-xl text-sm font-bold tracking-widest w-32 focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                />
+                <button 
+                  onClick={verify2FA} 
+                  disabled={isVerifying || verifyCode.length < 6}
+                  className="px-6 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white rounded-xl text-sm font-bold transition shadow-sm"
+                >
+                  {isVerifying ? 'Verifying...' : 'Verify & Enable'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
         
@@ -128,17 +201,30 @@ export default function SecurityTab() {
             <Globe className="w-5 h-5 text-slate-500" />
             <h3 className="font-bold text-slate-900">Active Sessions</h3>
           </div>
+          {data.activeSessions?.length > 1 && (
+            <button 
+              onClick={revokeAllOtherSessions}
+              className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition"
+            >
+              Revoke All Others
+            </button>
+          )}
         </div>
         <div className="divide-y divide-slate-100">
           {data.activeSessions?.map((sess: any) => (
-            <div key={sess.id} className="p-5 flex items-center justify-between hover:bg-slate-50 transition">
+            <div key={sess.id} className={`p-5 flex items-center justify-between transition ${sess.isCurrent ? 'bg-indigo-50/50' : 'hover:bg-slate-50'}`}>
               <div>
-                <p className="text-sm font-bold text-slate-900">{sess.os || 'Unknown OS'} &middot; {sess.browser || 'Unknown Browser'}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-slate-900">{sess.os || 'Unknown OS'} &middot; {sess.browser || 'Unknown Browser'}</p>
+                  {sess.isCurrent && <span className="bg-emerald-100 text-emerald-700 text-[10px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full">Current</span>}
+                </div>
                 <p className="text-xs text-slate-500 mt-1">{sess.ip} &middot; Last active: {new Date(sess.lastActivity).toLocaleString()}</p>
               </div>
-              <button onClick={() => revokeSession(sess.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition" title="Log out session">
-                <Power className="w-4 h-4" />
-              </button>
+              {!sess.isCurrent && (
+                <button onClick={() => revokeSession(sess.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition" title="Log out session">
+                  <Power className="w-4 h-4" />
+                </button>
+              )}
             </div>
           ))}
           {(!data.activeSessions || data.activeSessions.length === 0) && (

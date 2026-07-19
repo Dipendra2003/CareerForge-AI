@@ -142,7 +142,7 @@ ${message || "No specific comments left."}
         closeFeedback();
       }, 3000);
     } catch (err: any) {
-      console.error(err);
+      
       toast.error(err.message || "Something went wrong. Please try again.", "Submission Failed");
     } finally {
       setIsSubmitting(false);

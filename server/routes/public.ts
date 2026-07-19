@@ -172,17 +172,25 @@ publicRouter.get('/faqs', async (req, res) => {
 
 publicRouter.get('/landing', async (req, res) => {
   try {
-    const [sections, hero, stats, features, partners, testimonials, ctas, newsletters] = await Promise.all([
+    const [sections, hero, stats, features, partners, testimonials, ctas, newsletters, steps] = await Promise.all([
       prisma.landingSection.findMany({ orderBy: { displayOrder: 'asc' } }),
       prisma.landingHero.findFirst(),
       prisma.landingStatistic.findMany({ where: { isPublished: true }, orderBy: { displayOrder: 'asc' } }),
       prisma.landingFeature.findMany({ where: { isPublished: true }, orderBy: { displayOrder: 'asc' } }),
       prisma.landingPartner.findMany({ where: { isPublished: true }, orderBy: { displayOrder: 'asc' } }),
-      prisma.landingTestimonial.findMany({ where: { isPublished: true }, orderBy: { displayOrder: 'asc' } }),
+      prisma.landingTestimonial.findMany({ 
+        where: { isPublished: true }, 
+        orderBy: [
+          { displayOrder: 'asc' },
+          { createdAt: 'desc' }
+        ],
+        take: 3
+      }),
       prisma.landingCTA.findMany({ where: { isPublished: true }, orderBy: { displayOrder: 'asc' } }),
-      prisma.landingNewsletter.findFirst({ where: { isPublished: true } })
+      prisma.landingNewsletter.findFirst({ where: { isPublished: true } }),
+      (prisma as any).landingStep.findMany({ where: { isPublished: true }, orderBy: { displayOrder: 'asc' } })
     ]);
-    res.json({ sections, hero, stats, features, partners, testimonials, ctas, newsletters });
+    res.json({ sections, hero, stats, features, partners, testimonials, ctas, newsletters, steps });
   } catch (error: any) {
     console.warn('Database not reachable, serving fallback static landing config:', error.message || error);
     res.json({
@@ -194,6 +202,7 @@ publicRouter.get('/landing', async (req, res) => {
       testimonials: [],
       ctas: [],
       newsletters: null,
+      steps: [],
       databaseConnected: false
     });
   }

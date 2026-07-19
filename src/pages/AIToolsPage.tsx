@@ -102,7 +102,7 @@ export default function AIToolsPage({ currentUser, activeScan, onUpgrade }: AITo
       setBulletResults(data.suggestions || []);
     } catch (err: any) {
       if (err.response?.status === 402) alert("Pro plan required for this feature.");
-      if (err?.response?.status !== 401) console.error(err);
+      
     } finally {
       setBulletLoading(false);
     }
@@ -133,7 +133,7 @@ export default function AIToolsPage({ currentUser, activeScan, onUpgrade }: AITo
         const errorMsg = err.response?.data?.error || "Failed to generate cover letter.";
         toast.error(errorMsg, "Generation Failed");
       }
-      if (err?.response?.status !== 401) console.error(err);
+      
     } finally {
       setClLoading(false);
     }
@@ -149,7 +149,7 @@ export default function AIToolsPage({ currentUser, activeScan, onUpgrade }: AITo
       setLiOutput(data.optimized || data);
     } catch (err: any) {
       if (err.response?.status === 402) alert("Pro plan required for this feature.");
-      if (err?.response?.status !== 401) console.error(err);
+      
     } finally {
       setLiLoading(false);
     }
@@ -172,7 +172,7 @@ export default function AIToolsPage({ currentUser, activeScan, onUpgrade }: AITo
       setIpPreparationPlan(data.preparationPlan || []);
     } catch (err: any) {
       if (err.response?.status === 402) alert("Pro plan required for this feature.");
-      if (err?.response?.status !== 401) console.error(err);
+      
     } finally {
       setIpLoading(false);
     }

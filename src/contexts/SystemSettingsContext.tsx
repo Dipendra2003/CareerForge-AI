@@ -18,7 +18,8 @@ export function SystemSettingsProvider({ children }: { children: React.ReactNode
       const res = await apiClient.get('/public/config');
       setSettings(res.data.settings);
     } catch (err) {
-      console.error('Failed to fetch system settings', err);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setLoading(false);
     }

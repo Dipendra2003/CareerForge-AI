@@ -89,12 +89,24 @@ const AccountPage: React.FC = () => {
 
         {/* Content Area */}
         <div className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6 md:p-8 min-h-[500px]">
-          {activeTab === "profile" && <ProfileTab />}
-          {activeTab === "security" && <SecurityTab />}
-          {activeTab === "billing" && <BillingTab />}
-          {activeTab === "notifications" && <NotificationsTab />}
-          {activeTab === "connected" && <ConnectedAccountsTab />}
-          {activeTab === "privacy" && <PrivacyTab />}
+          <div className={activeTab === "profile" ? "block" : "hidden"}>
+            <ProfileTab />
+          </div>
+          <div className={activeTab === "security" ? "block" : "hidden"}>
+            <SecurityTab />
+          </div>
+          <div className={activeTab === "billing" ? "block" : "hidden"}>
+            <BillingTab />
+          </div>
+          <div className={activeTab === "notifications" ? "block" : "hidden"}>
+            <NotificationsTab />
+          </div>
+          <div className={activeTab === "connected" ? "block" : "hidden"}>
+            <ConnectedAccountsTab />
+          </div>
+          <div className={activeTab === "privacy" ? "block" : "hidden"}>
+            <PrivacyTab />
+          </div>
         </div>
       </div>
     </div>

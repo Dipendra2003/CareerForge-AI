@@ -44,7 +44,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         // Silently return as this is handled by the auth interceptor / login state
         return;
       }
-      console.error("Failed to fetch notifications", error);
+      
     }
   };
 
@@ -64,7 +64,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      if (error?.response?.status !== 401) console.error(error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 
@@ -74,7 +75,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
-      if (error?.response?.status !== 401) console.error(error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 
@@ -83,7 +85,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       await apiClient.put(`/notifications/${id}/archive`);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
     } catch (error) {
-      if (error?.response?.status !== 401) console.error(error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 
@@ -92,7 +95,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       await apiClient.delete(`/notifications/${id}`);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
     } catch (error) {
-      if (error?.response?.status !== 401) console.error(error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 

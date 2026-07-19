@@ -45,7 +45,7 @@ export default function AdminAnalytics() {
       const res = await apiClient.get(url);
       setData(res.data);
     } catch (err: any) {
-      console.error('Failed to fetch analytics:', err);
+      
       // Show error state instead of infinite loading
       setData(null);
       // Optionally show toast notification if toast context is available

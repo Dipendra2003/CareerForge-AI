@@ -4,8 +4,9 @@ let accessToken: string | null = null;
 try {
   accessToken = localStorage.getItem('session_token');
 } catch (e) {
-  console.error('Failed to read session_token from localStorage', e);
-}
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
@@ -32,8 +33,9 @@ export const setAccessToken = (token: string | null) => {
       localStorage.removeItem('remember_me');
     }
   } catch (e) {
-    console.error('Failed to update localStorage token', e);
-  }
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
 };
 
 export const getAccessToken = () => accessToken;

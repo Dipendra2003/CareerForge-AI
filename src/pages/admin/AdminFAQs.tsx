@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash, Search, GripVertical, Check, X, Filter } from 'lucide-react';
+import { Plus, Edit, Trash, Search, GripVertical, Check, X, Filter, Loader2 } from 'lucide-react';
 import apiClient from '../../lib/apiClient';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function AdminFAQs() {
   const [faqs, setFaqs] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
   
   // Modals
   const [showFaqModal, setShowFaqModal] = useState(false);
@@ -32,8 +34,8 @@ export default function AdminFAQs() {
       ]);
       setFaqs(faqsRes.data.faqs);
       setCategories(catRes.data);
-    } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to load FAQs", "Error");
     } finally {
       setLoading(false);
     }
@@ -49,25 +51,27 @@ export default function AdminFAQs() {
     try {
       if (editingFaq) {
         await apiClient.put(`/admin/faqs/${editingFaq.id}`, faqForm);
+        toast.success("FAQ updated successfully", "Success");
       } else {
         await apiClient.post('/admin/faqs', faqForm);
+        toast.success("FAQ created successfully", "Success");
       }
       setShowFaqModal(false);
       setEditingFaq(null);
       fetchData();
-    } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
-      alert('Failed to save FAQ');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to save FAQ", "Error");
     }
   };
 
   const handleDeleteFaq = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this FAQ?')) return;
+    if (!window.confirm('Are you sure you want to delete this FAQ?')) return;
     try {
       await apiClient.delete(`/admin/faqs/${id}`);
+      toast.success("FAQ deleted successfully", "Success");
       fetchData();
-    } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to delete FAQ", "Error");
     }
   };
 
@@ -97,25 +101,27 @@ export default function AdminFAQs() {
     try {
       if (editingCat) {
         await apiClient.put(`/admin/faqs/categories/${editingCat.id}`, catForm);
+        toast.success("Category updated successfully", "Success");
       } else {
         await apiClient.post('/admin/faqs/categories', catForm);
+        toast.success("Category created successfully", "Success");
       }
       setShowCatModal(false);
       setEditingCat(null);
       fetchData();
-    } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
-      alert('Failed to save category');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to save category", "Error");
     }
   };
 
   const handleDeleteCat = async (id: string) => {
-    if (!confirm('Are you sure? FAQs in this category will lose their category assignment.')) return;
+    if (!window.confirm('Are you sure? FAQs in this category will lose their category assignment.')) return;
     try {
       await apiClient.delete(`/admin/faqs/categories/${id}`);
+      toast.success("Category deleted successfully", "Success");
       fetchData();
-    } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to delete category", "Error");
     }
   };
 
@@ -136,7 +142,16 @@ export default function AdminFAQs() {
     setShowCatModal(true);
   };
 
-  if (loading) return <div className="p-8">Loading FAQs...</div>;
+  if (loading) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center text-slate-500">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-4" />
+          <p>Loading FAQs...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -150,7 +165,7 @@ export default function AdminFAQs() {
           <button onClick={openAddCat} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">
             Manage Categories
           </button>
-          <button onClick={openAddFaq} className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] hover:bg-indigo-700 text-white rounded-lg font-medium transition">
+          <button onClick={openAddFaq} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-indigo-700 text-white rounded-lg font-medium transition">
             <Plus className="w-4 h-4" /> Add FAQ
           </button>
         </div>
@@ -160,7 +175,7 @@ export default function AdminFAQs() {
       <div className="mb-8 bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
           <h2 className="font-semibold text-slate-800">Categories</h2>
-          <button onClick={openAddCat} className="text-sm text-[var(--color-primary)] font-medium hover:underline">+ New Category</button>
+          <button onClick={openAddCat} className="text-sm text-primary font-medium hover:underline">+ New Category</button>
         </div>
         <div className="divide-y divide-slate-100">
           {categories.length === 0 ? (
@@ -319,7 +334,7 @@ export default function AdminFAQs() {
                 <button type="button" onClick={() => setShowFaqModal(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-[var(--color-primary)] hover:bg-indigo-700 text-white rounded-lg font-medium transition">
+                <button type="submit" className="px-4 py-2 bg-primary hover:bg-indigo-700 text-white rounded-lg font-medium transition">
                   Save FAQ
                 </button>
               </div>
@@ -368,7 +383,7 @@ export default function AdminFAQs() {
                 <button type="button" onClick={() => setShowCatModal(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-[var(--color-primary)] hover:bg-indigo-700 text-white rounded-lg font-medium transition">
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-opacity font-medium shadow-sm hover:shadow-md flex items-center gap-2">
                   Save Category
                 </button>
               </div>

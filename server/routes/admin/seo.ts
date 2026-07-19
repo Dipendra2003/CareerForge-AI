@@ -71,6 +71,56 @@ router.get("/pages", async (req, res) => {
   }
 });
 
+// Auto-map standard pages
+router.post("/auto-map", async (req, res) => {
+  try {
+    const standardPages = [
+      { key: "home", name: "Home Page" },
+      { key: "about", name: "About Us" },
+      { key: "pricing", name: "Pricing" },
+      { key: "contact", name: "Contact Us" },
+      { key: "faq", name: "FAQ" },
+      { key: "legal", name: "Legal & Privacy" },
+      { key: "login", name: "Login" },
+      { key: "signup", name: "Sign Up" },
+      { key: "tools", name: "AI Tools" },
+      { key: "analyzer", name: "Resume Analyzer" }
+    ];
+
+    let added = 0;
+    for (const p of standardPages) {
+      const exists = await prisma.sEOPage.findUnique({ where: { pageKey: p.key } });
+      if (!exists) {
+        await prisma.sEOPage.create({
+          data: {
+            pageKey: p.key,
+            pageName: p.name,
+            isIndexed: true
+          }
+        });
+        added++;
+      }
+    }
+
+    if (added > 0) {
+      await prisma.auditLog.create({
+        data: {
+          actorId: req.user?.id,
+          actorEmail: req.user?.email,
+          module: "SEO",
+          action: "AUTO_MAP_PAGES",
+          description: `Auto-mapped ${added} standard SEO pages`,
+        }
+      });
+    }
+
+    res.json({ success: true, added });
+  } catch (error) {
+    console.error("Error auto-mapping pages:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Create/Update SEO page
 router.put("/pages/:pageKey", async (req, res) => {
   try {

@@ -19,7 +19,8 @@ export default function AdminSettings() {
       const res = await apiClient.get('/admin/settings/limits');
       setSettings(res.data.settings);
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setLoading(false);
     }

@@ -63,7 +63,8 @@ export default function AdminUsers() {
       setTotalPages(res.data.pages);
       setTotalUsers(res.data.total);
     } catch (error) {
-      console.error("Failed to load users", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       if (!silent) setLoading(false);
     }
@@ -71,7 +72,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     fetchUsers(false);
-    apiClient.get('/admin/features').then(res => setAllFeatures(res.data.features)).catch(console.error);
+    apiClient.get('/admin/features').then(res => setAllFeatures(res.data.features)).catch(() => {});
   }, [page, limit, search, roleFilter, planFilter, verifiedFilter, suspendedFilter, sortOption]);
 
   const handleSearch = (e: React.FormEvent) => {

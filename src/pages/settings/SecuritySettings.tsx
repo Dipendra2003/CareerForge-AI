@@ -13,7 +13,10 @@ export default function SecuritySettings() {
     try {
       const res = await apiClient.get('/user/security/dashboard');
       setData(res.data);
-    } catch(e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   useEffect(() => {
@@ -33,7 +36,10 @@ export default function SecuritySettings() {
         setBackupCodes([]);
       }
       fetchData();
-    } catch(e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const regenerateCodes = async () => {
@@ -41,7 +47,10 @@ export default function SecuritySettings() {
     try {
       const res = await apiClient.post('/user/security/backup-codes/regenerate');
       setBackupCodes(res.data.backupCodes);
-    } catch(e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const revokeSession = async (id: string) => {
@@ -49,7 +58,10 @@ export default function SecuritySettings() {
     try {
       await apiClient.post(`/user/security/sessions/${id}/revoke`);
       fetchData();
-    } catch(e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const revokeAllSessions = async () => {
@@ -57,7 +69,10 @@ export default function SecuritySettings() {
     try {
       await apiClient.post(`/user/security/sessions/revoke-all?exceptCurrent=true`);
       fetchData();
-    } catch(e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const updateSettings = async (updates: any) => {
@@ -65,7 +80,10 @@ export default function SecuritySettings() {
       const newSettings = { ...data.securitySettings, ...updates };
       await apiClient.put(`/user/security/settings`, newSettings);
       setData({ ...data, securitySettings: newSettings });
-    } catch(e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   if (!data) return <div className="p-8 text-center text-slate-500">Loading...</div>;

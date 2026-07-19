@@ -24,7 +24,7 @@ export default function PricingPage({ currentUser, onUpgrade, onDowngrade }: Pri
       setPlans(res.data.plans || []);
       setFeatures(res.data.features || []);
       setPromotions(res.data.promotions || []);
-    }).catch(err => { if(err?.response?.status !== 401) console.error(err); });
+    }).catch(err => {  });
   }, []);
 
   const handleCheckoutClick = (planSlug: string) => {
@@ -33,10 +33,10 @@ export default function PricingPage({ currentUser, onUpgrade, onDowngrade }: Pri
   };
 
   const proPlan = plans.find(p => p.slug !== 'free' && p.monthlyPrice > 0);
-  const annualDiscount = proPlan ? (proPlan.monthlyPrice * 12) - (proPlan.annualPrice * 12) : 0;
+  const annualDiscount = proPlan ? (proPlan.monthlyPrice * 12) - proPlan.annualPrice : 0;
 
   return (
-    <div className="max-w-5xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto space-y-12 pb-16 px-4 xl:px-8">
+    <div className="max-w-5xl xl:max-w-7xl 2xl:max-w-360 mx-auto space-y-12 pb-16 px-4 xl:px-8">
       <SEOMeta pageKey="pricing" />
       {/* Title */}
       <div className="text-center space-y-2">
@@ -47,7 +47,7 @@ export default function PricingPage({ currentUser, onUpgrade, onDowngrade }: Pri
         <p className="text-slate-600 max-w-xl mx-auto text-sm md:text-base">Upgrade to unlock advanced AI-tuning tools and secure unlimited job-matching scans.</p>
         
         {promotions.length > 0 && (
-          <div className="mt-4 inline-block bg-gradient-to-r from-pink-500 to-indigo-600 text-white font-bold px-4 py-2 rounded-full shadow-lg text-sm animate-pulse">
+          <div className="mt-4 inline-block bg-linear-to-r from-pink-500 to-indigo-600 text-white font-bold px-4 py-2 rounded-full shadow-lg text-sm animate-pulse">
              🎉 Special Offer: {promotions[0].title}
           </div>
         )}
@@ -73,7 +73,7 @@ export default function PricingPage({ currentUser, onUpgrade, onDowngrade }: Pri
       </div>
 
       {/* Dynamic pricing boxes */}
-      <div className={`grid grid-cols-1 md:grid-cols-${Math.min(plans.length, 3)} gap-8 max-w-${plans.length === 1 ? 'md' : plans.length === 2 ? '3xl' : '5xl'} xl:max-w-7xl 2xl:max-w-[90rem] mx-auto items-stretch`}>
+      <div className={`grid grid-cols-1 md:grid-cols-${Math.min(plans.length, 3)} gap-8 max-w-${plans.length === 1 ? 'md' : plans.length === 2 ? '3xl' : '5xl'} xl:max-w-7xl 2xl:max-w-360 mx-auto items-stretch`}>
         {plans.map((plan) => {
           const isActive = currentUser?.plan?.toLowerCase() === plan.slug.toLowerCase();
           const isFree = plan.monthlyPrice === 0;
@@ -81,8 +81,8 @@ export default function PricingPage({ currentUser, onUpgrade, onDowngrade }: Pri
           return (
             <div key={plan.id} className={`${!isFree ? 'bg-slate-950 text-white border-indigo-600 shadow-xl' : 'bg-white text-slate-900 border-slate-200 shadow-sm'} ${plan.isRecommended ? 'scale-105 border-indigo-500 shadow-indigo-500/20' : 'scale-100'} rounded-3xl border p-8 flex flex-col justify-between relative transition-transform`}>
               {plan.isRecommended ? (
-                <div className="absolute -top-3 right-6 bg-gradient-to-r from-pink-500 to-indigo-600 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md">
-                  Recommended
+                <div className="absolute -top-3 right-6 bg-linear-to-r from-indigo-500 to-purple-600 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md animate-bounce-slow">
+                  Most Popular
                 </div>
               ) : !isFree ? (
                 <div className="absolute -top-3 right-6 bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md">
@@ -108,7 +108,7 @@ export default function PricingPage({ currentUser, onUpgrade, onDowngrade }: Pri
                     ${billingPeriod === "annual" ? plan.annualPrice : plan.monthlyPrice}
                   </span>
                   <span className={`${!isFree ? 'text-slate-400' : 'text-slate-400'} text-xs`}>
-                    {isFree ? " / forever" : (billingPeriod === "annual" ? " / month, billed yearly" : " / month")}
+                    {isFree ? " / forever" : (billingPeriod === "annual" ? " / year" : " / month")}
                   </span>
                 </div>
 
@@ -167,7 +167,7 @@ export default function PricingPage({ currentUser, onUpgrade, onDowngrade }: Pri
       </div>
 
       {/* Comparison Matrix */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 overflow-x-auto max-w-5xl xl:max-w-7xl 2xl:max-w-[90rem] mx-auto">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 overflow-x-auto max-w-5xl xl:max-w-7xl 2xl:max-w-360 mx-auto">
         <h3 className="font-extrabold text-slate-900 border-b border-slate-100 pb-3 text-sm uppercase tracking-wider text-center flex items-center justify-center gap-1">
           <Sparkles className="w-4 h-4 text-indigo-600" /> Plan Comparison Matrix
         </h3>

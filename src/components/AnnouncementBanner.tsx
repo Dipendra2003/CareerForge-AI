@@ -17,6 +17,7 @@ export default function AnnouncementBanner() {
       style={{ backgroundColor: settings.announcementColor || '#3b82f6' }}
     >
       <div className="flex-1 flex justify-center items-center text-sm font-medium text-center gap-4 flex-wrap">
+
         <span className="flex-1 text-center md:flex-none">
           {settings.announcementBanner}
         </span>
@@ -32,7 +33,7 @@ export default function AnnouncementBanner() {
       </div>
       <button 
         onClick={() => setIsVisible(false)}
-        className="flex-shrink-0 p-1 rounded-full hover:bg-white/20 transition-colors ml-4 focus:outline-none focus:ring-2 focus:ring-white"
+        className="shrink-0 p-1 rounded-full hover:bg-white/20 transition-colors ml-4 focus:outline-none focus:ring-2 focus:ring-white"
         aria-label="Dismiss banner"
       >
         <X className="w-4 h-4 text-white" />

@@ -1,52 +1,52 @@
 import SEOMeta from '../components/SEOMeta';
-import { useState } from "react";
-import { Plus, Minus, Search } from "lucide-react";
-
-const faqs = [
-  {
-    category: "General",
-    questions: [
-      {
-        q: "What is CareerForge AI?",
-        a: "CareerForge AI is an advanced AI-powered platform designed to optimize your resume, analyze ATS compatibility, and help you land more interviews by matching your skills with job descriptions."
-      },
-      {
-        q: "Is CareerForge AI free to use?",
-        a: "We offer a generous free tier that includes basic resume scanning and keyword analysis. For advanced features like unlimited cover letter generation and deep ATS insights, we offer a Pro plan."
-      }
-    ]
-  },
-  {
-    category: "Technical",
-    questions: [
-      {
-        q: "How does the ATS Checker work?",
-        a: "Our ATS Checker simulates exactly how applicant tracking systems parse your resume. It identifies missing keywords, formatting errors, and readability issues that might prevent human recruiters from seeing your application."
-      },
-      {
-        q: "Which file formats do you support?",
-        a: "Currently, our analyzer supports PDF (.pdf) and Microsoft Word (.docx) files. PDF is highly recommended to preserve formatting during the parsing process."
-      }
-    ]
-  },
-  {
-    category: "Billing & Account",
-    questions: [
-      {
-        q: "Can I cancel my Pro subscription at any time?",
-        a: "Yes! You can cancel your subscription at any time from your Account Settings page. You will retain access to Pro features until the end of your current billing cycle."
-      },
-      {
-        q: "Do you offer refunds?",
-        a: "Yes, we offer a 7-day money-back guarantee. If you're not satisfied with your Pro subscription, contact our support team within 7 days of purchase for a full refund."
-      }
-    ]
-  }
-];
+import { useState, useEffect } from "react";
+import { Plus, Minus, Search, Loader2 } from "lucide-react";
+import apiClient from '../lib/apiClient';
 
 export default function FaqPage() {
+  const [faqsData, setFaqsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [openIndex, setOpenIndex] = useState<string | null>("General-0");
+  const [openIndex, setOpenIndex] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        const res = await apiClient.get('/public/faqs');
+        const rawFaqs = res.data.faqs || [];
+        const categories = res.data.categories || [];
+        
+        // Group FAQs by category name
+        const grouped = categories.map((cat: any) => ({
+          category: cat.name,
+          questions: rawFaqs
+            .filter((f: any) => f.categoryId === cat.id)
+            .map((f: any) => ({ q: f.question, a: f.answer }))
+        })).filter((g: any) => g.questions.length > 0);
+
+        // Append any uncategorized FAQs if present
+        const uncategorized = rawFaqs.filter((f: any) => !f.categoryId);
+        if (uncategorized.length > 0) {
+          grouped.push({
+            category: "Other",
+            questions: uncategorized.map((f: any) => ({ q: f.question, a: f.answer }))
+          });
+        }
+
+        setFaqsData(grouped);
+        
+        // Open the first FAQ of the first category by default
+        if (grouped.length > 0 && grouped[0].questions.length > 0) {
+          setOpenIndex(`${grouped[0].category}-0`);
+        }
+      } catch (err) {
+        console.error('Failed to load FAQs');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFaqs();
+  }, []);
 
   const toggleAccordion = (id: string) => {
     setOpenIndex(openIndex === id ? null : id);
@@ -76,8 +76,12 @@ export default function FaqPage() {
         />
       </div>
 
-      <div className="max-w-3xl xl:max-w-5xl 2xl:max-w-[70rem] mx-auto space-y-12">
-        {faqs.map((category) => {
+      <div className="max-w-3xl xl:max-w-5xl 2xl:max-w-280 mx-auto space-y-12 relative z-10">
+        {loading ? (
+          <div className="flex justify-center items-center py-24">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          </div>
+        ) : faqsData.map((category) => {
           const filteredQuestions = category.questions.filter(
             (item) => 
               item.q.toLowerCase().includes(searchQuery.toLowerCase()) || 

@@ -57,7 +57,7 @@ export async function seedDefaultData() {
           name: "Dipendra Kumar",
           passwordHash: hashedPassword,
           role: 'admin',
-          plan: 'annual',
+          plan: 'pro',
           isEmailVerified: true,
           scansUsedThisMonth: 0
         }
@@ -74,7 +74,7 @@ export async function seedDefaultData() {
         data: { 
           role: 'admin',
           isEmailVerified: true,
-          plan: 'annual'
+          plan: 'pro'
         }
       });
       console.log(`✅ User ${adminEmail} upgraded to admin role!`);
@@ -85,7 +85,7 @@ export async function seedDefaultData() {
     // 2. Ensure Plans exist
     const planCount = await prisma.plan.count();
     if (planCount === 0) {
-      console.log("No plans found. Seeding default plans (free, pro, annual)...");
+      console.log("No plans found. Seeding default plans (free, pro)...");
       
       const freePlan = await prisma.plan.create({
         data: {
@@ -117,20 +117,7 @@ export async function seedDefaultData() {
         }
       });
 
-      const annualPlan = await prisma.plan.create({
-        data: {
-          name: "Annual",
-          slug: "annual",
-          description: "Ultimate yearly pass to our entire suite",
-          monthlyPrice: 12,
-          annualPrice: 144,
-          currency: "usd",
-          durationDays: 365,
-          trialDays: 0,
-          isActive: true,
-          sortOrder: 2
-        }
-      });
+      // Removed 'Annual' plan as it conflicts with the billing toggle
 
       // 3. Ensure Features exist
       console.log("Seeding default features...");
@@ -170,14 +157,6 @@ export async function seedDefaultData() {
           }
         });
 
-        // Link to Annual (enabled)
-        await prisma.planFeature.create({
-          data: {
-            planId: annualPlan.id,
-            featureId: feature.id,
-            enabled: true
-          }
-        });
       }
       console.log("Database seeded successfully with plans and features!");
     } else {
@@ -189,6 +168,130 @@ export async function seedDefaultData() {
     const { initTemplates } = await import("../routes/admin/emails");
     await initTemplates();
     console.log("Email templates successfully initialized/upgraded!");
+
+    // 5. Seed FAQ Content
+    console.log('Seeding FAQ Content...');
+    const faqCategoryCount = await prisma.fAQCategory.count();
+    if (faqCategoryCount === 0) {
+      // Categories
+      const generalCategory = await prisma.fAQCategory.upsert({
+        where: { slug: 'general' },
+        update: {},
+        create: {
+          name: 'General Questions',
+          slug: 'general',
+          description: 'General information about CareerForge AI',
+          displayOrder: 1,
+        }
+      });
+
+      const technicalCategory = await prisma.fAQCategory.upsert({
+        where: { slug: 'technical' },
+        update: {},
+        create: {
+          name: 'Technical & ATS',
+          slug: 'technical',
+          description: 'How the ATS scanner works',
+          displayOrder: 2,
+        }
+      });
+
+      const billingCategory = await prisma.fAQCategory.upsert({
+        where: { slug: 'billing' },
+        update: {},
+        create: {
+          name: 'Billing & Account',
+          slug: 'billing',
+          description: 'Subscription and billing details',
+          displayOrder: 3,
+        }
+      });
+
+      // FAQs
+      const faqs = [
+        {
+          question: "What is CareerForge AI?",
+          answer: "CareerForge AI is an advanced AI-powered platform designed to optimize your resume, analyze ATS compatibility, and help you land more interviews by perfectly matching your skills with job descriptions.",
+          slug: "what-is-careerforge-ai",
+          categoryId: generalCategory.id,
+          isPublished: true,
+          isFeatured: true,
+          displayOrder: 1
+        },
+        {
+          question: "Is CareerForge AI free to use?",
+          answer: "We offer a generous free tier that includes basic resume scanning and keyword analysis. For advanced features like unlimited cover letter generation, deep ATS insights, and AI rewriting, we offer a Pro plan.",
+          slug: "is-it-free",
+          categoryId: generalCategory.id,
+          isPublished: true,
+          isFeatured: true,
+          displayOrder: 2
+        },
+        {
+          question: "How does the ATS Checker work?",
+          answer: "Our ATS Checker simulates exactly how applicant tracking systems parse your resume. It identifies missing keywords, formatting errors, and readability issues that might prevent human recruiters from seeing your application.",
+          slug: "how-ats-checker-works",
+          categoryId: technicalCategory.id,
+          isPublished: true,
+          isFeatured: true,
+          displayOrder: 3
+        },
+        {
+          question: "Which file formats do you support?",
+          answer: "Currently, our analyzer supports PDF (.pdf) and Microsoft Word (.docx) files. PDF is highly recommended to preserve formatting during the parsing process.",
+          slug: "supported-file-formats",
+          categoryId: technicalCategory.id,
+          isPublished: true,
+          isFeatured: false,
+          displayOrder: 4
+        },
+        {
+          question: "Does the AI rewrite my entire resume?",
+          answer: "Our AI provides targeted suggestions for specific bullet points and summaries based on the job description you provide. You always have full control over what changes to apply, ensuring your resume remains authentic to your experience.",
+          slug: "ai-rewrite-resume",
+          categoryId: technicalCategory.id,
+          isPublished: true,
+          isFeatured: true,
+          displayOrder: 5
+        },
+        {
+          question: "Can I cancel my Pro subscription at any time?",
+          answer: "Yes! You can easily cancel your subscription at any time from your Account Settings page. You will retain access to Pro features until the end of your current billing cycle.",
+          slug: "cancel-pro-subscription",
+          categoryId: billingCategory.id,
+          isPublished: true,
+          isFeatured: false,
+          displayOrder: 6
+        },
+        {
+          question: "Do you offer refunds?",
+          answer: "Yes, we offer a 14-day money-back guarantee. If you're not completely satisfied with your Pro subscription, contact our support team within 14 days of purchase for a full refund.",
+          slug: "refund-policy",
+          categoryId: billingCategory.id,
+          isPublished: true,
+          isFeatured: false,
+          displayOrder: 7
+        }
+      ];
+
+      for (const faq of faqs) {
+        await prisma.fAQ.upsert({
+          where: { slug: faq.slug },
+          update: {
+            question: faq.question,
+            answer: faq.answer,
+            categoryId: faq.categoryId,
+            isPublished: faq.isPublished,
+            isFeatured: faq.isFeatured,
+            displayOrder: faq.displayOrder,
+          },
+          create: faq
+        });
+      }
+      console.log('FAQ Content Seeded successfully!');
+    } else {
+      console.log('FAQ Categories already exist in the database.');
+    }
 
   } catch (error: any) {
     console.error("Error seeding default plans and features:", error.message || error);

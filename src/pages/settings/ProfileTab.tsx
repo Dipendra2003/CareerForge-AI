@@ -41,14 +41,12 @@ export default function ProfileTab() {
     formData.append("avatar", file);
 
     try {
-      const { data } = await apiClient.post("/user/avatar", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const { data } = await apiClient.post("/user/avatar", formData);
       setAvatar(data.avatarUrl);
       await refreshSession();
       toast.success("Profile picture updated successfully!", "Avatar Updated");
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+      
       toast.error("Failed to upload profile picture. Please try again.", "Upload Failed");
     } finally {
       setLoading(false);

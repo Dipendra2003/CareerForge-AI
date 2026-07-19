@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Search, Globe, Image as ImageIcon, Code, Save, Settings, Info } from 'lucide-react';
+import { Search, Globe, Image as ImageIcon, Code, Save, Settings, Info, Zap } from 'lucide-react';
 import apiClient from '../../lib/apiClient';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function AdminSEO() {
   const [activeTab, setActiveTab] = useState<'pages' | 'settings'>('pages');
   const [pages, setPages] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
 
   // Editing state
   const [editingPage, setEditingPage] = useState<any>(null);
@@ -29,7 +31,8 @@ export default function AdminSEO() {
       setSettings(settingsRes.data);
       setSettingsForm(settingsRes.data || { robotsTxtDisallow: '', robotsTxtAllow: '', robotsTxtSitemap: '', globalFavicon: '' });
     } catch (error) {
-      if (error?.response?.status !== 401) console.error(error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setLoading(false);
     }
@@ -46,24 +49,38 @@ export default function AdminSEO() {
   };
 
   const savePage = async () => {
-    if (!pageForm.pageKey) return alert("Page Key is required");
+    if (!pageForm.pageKey) return toast.error("Page Key is required", "Validation Error");
     try {
       await apiClient.put(`/admin/seo/pages/${pageForm.pageKey}`, pageForm);
-      alert('SEO Page saved successfully');
+      toast.success('SEO Page saved successfully', 'Success');
       setEditingPage(null);
       fetchData();
     } catch (error) {
-      alert('Error saving SEO Page');
+      toast.error('Error saving SEO Page', 'Error');
     }
   };
 
   const saveSettings = async () => {
     try {
       await apiClient.put(`/admin/seo/settings`, settingsForm);
-      alert('SEO Settings saved successfully');
+      toast.success('SEO Settings saved successfully', 'Success');
       fetchData();
     } catch (error) {
-      alert('Error saving SEO Settings');
+      toast.error('Error saving SEO Settings', 'Error');
+    }
+  };
+
+  const handleAutoMap = async () => {
+    try {
+      const res = await apiClient.post('/admin/seo/auto-map', {});
+      if (res.data.added > 0) {
+        toast.success(`Successfully auto-mapped ${res.data.added} standard pages!`, 'Success');
+        fetchData();
+      } else {
+        toast.info('All standard pages are already mapped.', 'Info');
+      }
+    } catch (err) {
+      toast.error('Error auto-mapping pages', 'Error');
     }
   };
 
@@ -81,8 +98,7 @@ export default function AdminSEO() {
       });
       setSettingsForm({ ...settingsForm, globalFavicon: res.data.url });
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
-      alert('Upload failed');
+      toast.error('Favicon upload failed', 'Error');
     } finally {
       setUploadingFavicon(false);
     }
@@ -326,9 +342,14 @@ export default function AdminSEO() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200">
           <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
             <h2 className="font-bold text-slate-800">SEO Pages ({pages.length})</h2>
-            <button onClick={handleNewPage} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">
-              + Map New Page
-            </button>
+            <div className="flex gap-3">
+              <button onClick={handleAutoMap} className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-500" /> Auto-Map Standard Pages
+              </button>
+              <button onClick={handleNewPage} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">
+                + Map New Page
+              </button>
+            </div>
           </div>
           <div className="divide-y divide-slate-100">
             {pages.length === 0 ? (

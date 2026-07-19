@@ -24,7 +24,10 @@ export default function AdminNotifications() {
     try {
       const { data } = await apiClient.get("/admin/notifications/stats");
       setStats(data);
-    } catch (e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
   };
 
   const fetchNotifications = async () => {
@@ -35,7 +38,8 @@ export default function AdminNotifications() {
       const { data: res } = await apiClient.get(`/admin/notifications?page=${page}&limit=20${cursorParam}`);
       setData(res);
     } catch (error: any) {
-      if (error?.response?.status !== 401) console.error(error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +73,8 @@ export default function AdminNotifications() {
         fetchNotifications();
       }
     } catch (error) {
-      console.error("Failed to broadcast");
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setIsSending(false);
     }
@@ -84,7 +89,8 @@ export default function AdminNotifications() {
       } : null);
       fetchStats();
     } catch (error) {
-      console.error("Failed to delete", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 

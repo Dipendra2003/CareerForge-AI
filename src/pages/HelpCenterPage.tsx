@@ -32,7 +32,7 @@ export default function HelpCenterPage() {
         if (categories.length === 0) {
           setCategories(res.data.categories || []);
         }
-      }).catch(err => { if(err?.response?.status !== 401) console.error(err); }).finally(() => setLoading(false));
+      }).catch(err => {  }).finally(() => setLoading(false));
     });
   };
 

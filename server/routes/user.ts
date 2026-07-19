@@ -34,18 +34,56 @@ userRouter.post("/change-plan", requireAuth, async (req: AuthRequest, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+userRouter.post("/testimonial", requireAuth, async (req: AuthRequest, res) => {
+  const { rating, company, subtitle, achievement, description } = req.body;
+  if (!description || rating < 1 || rating > 5) {
+    return res.status(400).json({ error: "Invalid feedback data" });
+  }
+  
+  try {
+    const testimonial = await prisma.landingTestimonial.create({
+      data: {
+        title: req.user.name || "User",
+        subtitle,
+        company,
+        achievement,
+        description,
+        rating,
+        isPublished: true, // Auto-publish user feedback
+        displayOrder: 0
+      }
+    });
+    res.status(201).json({ message: "Testimonial submitted successfully", testimonial });
+  } catch (err) {
+    console.error("Testimonial Submission Error:", err);
+    res.status(500).json({ error: "Failed to submit testimonial" });
+  }
+});
 
 userRouter.post("/export", requireAuth, async (req: AuthRequest, res) => {
   try {
-     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-     const scans = await prisma.scan.findMany({ where: { userId: req.user.id } });
+     const userId = req.user.id;
+     const user = await prisma.user.findUnique({ where: { id: userId } });
+     const scans = await prisma.scan.findMany({ where: { userId } });
+     const coverLetters = await prisma.coverLetter.findMany({ where: { userId } });
+     const interviewPreps = await prisma.interviewPrep.findMany({ where: { userId } });
+     const invoices = await prisma.invoice.findMany({ where: { userId } });
+     const billingHistory = await prisma.billingHistory.findMany({ where: { userId } });
+     const loginHistory = await prisma.loginHistory.findMany({ where: { userId } });
+     const connectedAccounts = await prisma.connectedAccount.findMany({ where: { userId } });
      
      const exportData = {
          user,
-         scans: scans || []
+         scans: scans || [],
+         coverLetters: coverLetters || [],
+         interviewPreps: interviewPreps || [],
+         invoices: invoices || [],
+         billingHistory: billingHistory || [],
+         loginHistory: loginHistory || [],
+         connectedAccounts: connectedAccounts || []
      };
      
-     res.setHeader('Content-disposition', `attachment; filename=careerforgeai_relational_data_${req.user.id}.json`);
+     res.setHeader('Content-disposition', `attachment; filename=careerforgeai_relational_data_${userId}.json`);
      res.setHeader('Content-type', 'application/json');
      res.status(200).send(JSON.stringify(exportData, null, 2));
   } catch (err) {
@@ -55,9 +93,10 @@ userRouter.post("/export", requireAuth, async (req: AuthRequest, res) => {
 
 userRouter.delete("/account", requireAuth, async (req: AuthRequest, res) => {
   try {
+     const userId = req.user.id;
      // Check if they have a stripe sub
      const user = await prisma.user.findUnique({
-       where: { id: req.user.id },
+       where: { id: userId },
        select: { stripeCustomerId: true, subscriptionId: true }
      });
      
@@ -72,17 +111,24 @@ userRouter.delete("/account", requireAuth, async (req: AuthRequest, res) => {
          }
      }
      
+     // Manual Cascade Deletions for tables without robust Prisma relation cascades
+     await prisma.notification.deleteMany({ where: { userId } });
+     await prisma.notificationPreference.deleteMany({ where: { userId } });
+     await prisma.invoice.deleteMany({ where: { userId } });
+     await prisma.billingHistory.deleteMany({ where: { userId } });
+     await prisma.loginHistory.deleteMany({ where: { userId } });
+     await prisma.userSession.deleteMany({ where: { userId } });
+     await prisma.connectedAccount.deleteMany({ where: { userId } });
+     
      // Delete user in Prisma
-     await prisma.user.delete({ where: { id: req.user.id } });
+     await prisma.user.delete({ where: { id: userId } });
      
      res.json({ success: true });
   } catch (err) {
-      console.error(err);
+      console.error('An error occurred during this operation.');
       res.status(500).json({ error: "Account deletion failed" });
   }
 });
-
-export default userRouter;
 
 import multer from "multer";
 import cloudinary from "../services/cloudinary";
@@ -227,3 +273,5 @@ userRouter.put("/notifications/preferences", requireAuth, async (req: AuthReques
   }
 });
 
+
+export default userRouter;

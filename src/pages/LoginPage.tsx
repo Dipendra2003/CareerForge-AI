@@ -56,8 +56,9 @@ export default function LoginPage() {
             localStorage.removeItem('remember_me');
           }
         } catch (storageErr) {
-          console.error("localStorage error:", storageErr);
-        }
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
         setAccessToken(res.data.accessToken);
         await fetchUserRecord(); // Load user context
       } else {
@@ -73,8 +74,9 @@ export default function LoginPage() {
               localStorage.removeItem('remember_me');
             }
           } catch (storageErr) {
-            console.error("localStorage error:", storageErr);
-          }
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
           setAccessToken(res.data.accessToken);
           await fetchUserRecord(); // Load user context
         }

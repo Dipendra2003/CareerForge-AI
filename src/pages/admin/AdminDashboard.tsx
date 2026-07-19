@@ -12,8 +12,9 @@ export default function AdminDashboard() {
         const res = await apiClient.get("/admin/dashboard");
         setData(res.data);
       } catch (error) {
-        console.error("Failed to load dashboard stats", error);
-      } finally {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    } finally {
         setLoading(false);
       }
     };

@@ -121,7 +121,8 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
         setWorkspaceData(newState);
       }
     } catch (e) {
-      console.error(e);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       if (needsBlockingLoad) {
         setIsLoading(false);
@@ -178,8 +179,9 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
               scan = data.scan;
             }
           } catch (err) {
-            console.error("Failed to load scan for view", err);
-          }
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
         }
 
         if (scan) {
@@ -224,8 +226,9 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
              setSyncTimeout(true);
           }
         } catch (e) {
-          console.error("Failed to poll user plan", e);
-        }
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
       }, 2000);
       
       return () => clearInterval(interval);
@@ -295,7 +298,7 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
       // Success - data already updated optimistically, fetch to guarantee sync
       fetchData(false);
     } catch (error) {
-      console.error(`Failed to delete ${deleteModal.type}:`, error);
+      
       alert(`Failed to delete ${deleteModal.type}`);
       // Revert optimistic update by fetching fresh data
       if (type === 'scans') {
@@ -345,7 +348,7 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
       // Success - data already updated optimistically, fetch to guarantee sync
       fetchData(false);
     } catch (error) {
-      console.error(`Failed to toggle favorite:`, error);
+      
       // Revert optimistic update
       fetchData();
     }
@@ -361,8 +364,9 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
           return;
         }
       } catch (err) {
-        console.error("Failed to load full scan details", err);
-      }
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
     }
     setViewModal({ type, item });
   };
@@ -496,7 +500,7 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
       // Success - data already updated optimistically, fetch to guarantee sync
       fetchData(false);
     } catch (error) {
-      console.error("Bulk delete failed:", error);
+      
       alert("Failed to delete some items");
       // Revert by fetching fresh data
       fetchData();
@@ -541,7 +545,7 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
       link.click();
       if (link.parentNode) link.parentNode.removeChild(link);
     } catch (error) {
-      console.error("Export failed:", error);
+      
       alert("Failed to export data.");
     }
   };
@@ -582,7 +586,7 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
       setUploadFile(null);
       setUploadName("");
     } catch (error: any) {
-      console.error("Upload failed:", error);
+      
       const errorMsg = error.response?.data?.error || "Failed to upload resume";
       alert(errorMsg);
     } finally {
@@ -643,17 +647,7 @@ export default function Dashboard({ currentUser, onNavigate, onSelectScan, scans
 
   const { overview, resumes, bulletRewrites, linkedinProfiles, covers, interviews } = workspaceData;
 
-  // Debug logging
-  console.log("Dashboard data:", { overview, resumes, bulletRewrites, linkedinProfiles, covers, interviews });
-  
-  // Debug resume fileUrls
-  if (resumes && resumes.length > 0) {
-    console.log("Resume fileUrls:", resumes.map((r: any) => ({ 
-      name: r.name, 
-      fileUrl: r.fileUrl,
-      hasFileUrl: !!r.fileUrl 
-    })));
-  }
+
 
   const renderOverview = () => {
     if (overview === undefined || overview === null) {

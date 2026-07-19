@@ -491,11 +491,26 @@ model LandingSection {
   name            String   @unique
   isVisible       Boolean  @default(true)
   displayOrder    Int      @default(0)
+  title           String?
+  subtitle        String?
+  description     String?
   metaTitle       String?
   metaDescription String?
   ogImage         String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model LandingStep {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  icon         String?
+  accent       String?
+  displayOrder Int      @default(0)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model LandingHero {
@@ -545,6 +560,7 @@ model LandingPartner {
   title        String
   imageUrl     String?
   websiteUrl   String?
+  icon         String?
   displayOrder Int      @default(0)
   isPublished  Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -558,6 +574,7 @@ model LandingTestimonial {
   company      String?
   description  String?
   imageUrl     String?
+  achievement  String?
   rating       Int      @default(5)
   isFeatured   Boolean  @default(false)
   displayOrder Int      @default(0)

@@ -20,7 +20,7 @@ export default function PrivacyTab() {
       link.click();
       link.parentNode?.removeChild(link);
     } catch (err) {
-      console.error("Failed to export data", err);
+      
       alert("Failed to export data.");
     }
   };
@@ -32,7 +32,7 @@ export default function PrivacyTab() {
       await apiClient.delete("/user/account");
       signOut();
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+      
       alert("Failed to delete account. Please contact support.");
       setIsDeleting(false);
     }

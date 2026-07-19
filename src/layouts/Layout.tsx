@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   Sparkles, RefreshCw, Layers,
   Menu, X, LayoutDashboard, LogOut, ChevronLeft, ChevronRight, History, Shield,
-  User as UserIcon
+  User as UserIcon, MessageSquareHeart
 } from "lucide-react";
 import { User } from "../types";
 import { useAuth } from "../contexts/AuthContext";
@@ -13,6 +13,7 @@ import { useSystemSettings } from "../contexts/SystemSettingsContext";
 import Footer from "../components/Footer";
 import AnnouncementBanner from "../components/AnnouncementBanner";
 import NotificationBell from "../components/NotificationBell";
+import TestimonialModal from "../components/TestimonialModal";
 
 export default function Layout({ 
   children, 
@@ -24,6 +25,7 @@ export default function Layout({
   appIsSyncing: boolean
 }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   
   const location = useLocation();
   const currentPath = location.pathname;
@@ -131,6 +133,14 @@ export default function Layout({
                 </Link>
               )}
 
+              <button 
+                onClick={() => setIsFeedbackModalOpen(true)}
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-100 transition-all shadow-sm"
+              >
+                <MessageSquareHeart className="w-3.5 h-3.5" />
+                Feedback
+              </button>
+
               <NotificationBell />
 
               <button onClick={handleSignOut} className="text-xs font-semibold bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition whitespace-nowrap hidden lg:block">Log Out</button>
@@ -210,10 +220,19 @@ export default function Layout({
 
               <div className="pt-4 mt-4 border-t border-slate-100 space-y-1.5">
                 {isAuthenticated ? (
-                  <button onClick={() => { handleSignOut(); setIsMobileOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition text-sm font-semibold text-red-600 hover:bg-red-50">
-                    <LogOut className="w-[18px] h-[18px] shrink-0" />
-                    Log Out
-                  </button>
+                  <>
+                    <button 
+                      onClick={() => { setIsFeedbackModalOpen(true); setIsMobileOpen(false); }} 
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition text-sm font-semibold text-amber-600 hover:bg-amber-50"
+                    >
+                      <MessageSquareHeart className="w-[18px] h-[18px] shrink-0" />
+                      Feedback
+                    </button>
+                    <button onClick={() => { handleSignOut(); setIsMobileOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition text-sm font-semibold text-red-600 hover:bg-red-50">
+                      <LogOut className="w-[18px] h-[18px] shrink-0" />
+                      Log Out
+                    </button>
+                  </>
                 ) : (
                   <>
                     <Link to="/login" onClick={() => setIsMobileOpen(false)} className="block px-3 py-3 rounded-xl cursor-pointer transition text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900">Log In</Link>
@@ -243,6 +262,11 @@ export default function Layout({
           <Footer />
         )}
       </div>
+
+      <TestimonialModal 
+        isOpen={isFeedbackModalOpen} 
+        onClose={() => setIsFeedbackModalOpen(false)} 
+      />
     </div>
   );
 }

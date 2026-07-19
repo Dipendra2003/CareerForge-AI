@@ -94,7 +94,8 @@ export default function AdminContact() {
       const res = await apiClient.get(`/admin/contact?${params.toString()}`);
       setTickets(res.data.messages || []);
     } catch (error) {
-      console.error("Error loading tickets:", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setLoading(false);
     }
@@ -105,7 +106,8 @@ export default function AdminContact() {
       const res = await apiClient.get("/admin/contact/admins");
       setAdmins(res.data.admins || []);
     } catch (error) {
-      console.error("Error loading admin users:", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 
@@ -120,7 +122,8 @@ export default function AdminContact() {
       setReplyError("");
       setReplySuccess(false);
     } catch (error) {
-      console.error("Error loading ticket details:", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setDetailLoading(false);
     }
@@ -162,7 +165,7 @@ export default function AdminContact() {
       await fetchTicketDetails(selectedTicket.id);
       fetchTickets();
     } catch (error: any) {
-      console.error("Error sending reply:", error);
+      
       setReplyError(error.response?.data?.error || "Failed to send reply email.");
     } finally {
       setIsSendingReply(false);
@@ -178,7 +181,8 @@ export default function AdminContact() {
       await fetchTicketDetails(selectedTicket.id);
       fetchTickets();
     } catch (error) {
-      console.error("Error updating status:", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setActionLoading(null);
     }
@@ -193,7 +197,8 @@ export default function AdminContact() {
       await fetchTicketDetails(selectedTicket.id);
       fetchTickets();
     } catch (error) {
-      console.error("Error updating priority:", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setActionLoading(null);
     }
@@ -208,7 +213,8 @@ export default function AdminContact() {
       await fetchTicketDetails(selectedTicket.id);
       fetchTickets();
     } catch (error) {
-      console.error("Error assigning ticket:", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setActionLoading(null);
     }
@@ -223,7 +229,8 @@ export default function AdminContact() {
       setSelectedTicket(null);
       fetchTickets();
     } catch (error) {
-      console.error("Error deleting ticket:", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 

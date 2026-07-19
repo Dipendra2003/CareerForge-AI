@@ -74,6 +74,8 @@ export const refreshHandler = async (req: Request, res: Response) => {
       plan: tokenRecord.user.plan || 'free',
       isEmailVerified: tokenRecord.user.isEmailVerified,
       createdAt: tokenRecord.user.createdAt,
+      avatarUrl: tokenRecord.user.avatarUrl,
+      googleId: tokenRecord.user.googleId,
       scans_used_this_month: tokenRecord.user.scansUsedThisMonth || 0,
       extra_scans: extraScans,
       quota_reset_date: tokenRecord.user.userQuotaOverride?.resetDate || null

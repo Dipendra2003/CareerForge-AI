@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
-import { Mail, Save, RefreshCw, Send, Eye, FileText, CheckCircle, XCircle } from "lucide-react";
+import { Mail, Save, RefreshCw, Send, Eye, FileText, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "../../contexts/ToastContext";
 
 export default function AdminEmails() {
   const [templates, setTemplates] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'editor' | 'preview' | 'logs'>('editor');
+  const toast = useToast();
   
   const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
@@ -36,8 +38,8 @@ export default function AdminEmails() {
       if (res.data.templates.length > 0 && !activeTemplateId) {
         handleSelect(res.data.templates[0].id, res.data.templates);
       }
-    } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to fetch templates", "Error");
     } finally {
       setLoading(false);
     }
@@ -49,8 +51,8 @@ export default function AdminEmails() {
       setLogs(res.data.logs);
       setLogTotal(res.data.pages);
       setLogPage(page);
-    } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to fetch logs", "Error");
     }
   };
 
@@ -64,7 +66,10 @@ export default function AdminEmails() {
       let vars: string[] = [];
       try {
         vars = JSON.parse(template.variables || '[]');
-      } catch (e) {}
+      } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
       
       const newTestVars: Record<string, string> = {};
       vars.forEach(v => {
@@ -93,9 +98,9 @@ export default function AdminEmails() {
       const res = await apiClient.put(`/admin/emails/${editingTemplate.id}`, editingTemplate);
       setTemplates(prev => prev.map(t => t.id === editingTemplate.id ? res.data.template : t));
       setEditingTemplate(res.data.template);
-      alert("Template saved successfully!");
+      toast.success("Template saved successfully!", "Success");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to save template");
+      toast.error(err.response?.data?.error || "Failed to save template", "Error");
     } finally {
       setSaving(false);
     }
@@ -107,19 +112,19 @@ export default function AdminEmails() {
       const res = await apiClient.post(`/admin/emails/${editingTemplate.id}/restore`, {});
       setTemplates(prev => prev.map(t => t.id === editingTemplate.id ? res.data.template : t));
       setEditingTemplate(res.data.template);
-      alert("Template restored to default.");
+      toast.success("Template restored to default.", "Success");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to restore template");
+      toast.error(err.response?.data?.error || "Failed to restore template", "Error");
     }
   };
 
   const handleTest = async () => {
-    if (!editingTemplate || !testEmail) return alert("Please enter a test email address.");
+    if (!editingTemplate || !testEmail) return toast.error("Please enter a test email address.", "Validation Error");
     try {
       await apiClient.post(`/admin/emails/${editingTemplate.id}/test`, { email: testEmail, testVariables });
-      alert("Test email sent! Check your inbox.");
+      toast.success("Test email sent! Check your inbox.", "Success");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to send test email");
+      toast.error(err.response?.data?.error || "Failed to send test email", "Error");
     }
   };
 
@@ -137,7 +142,10 @@ export default function AdminEmails() {
     let vars: string[] = [];
     try {
       vars = JSON.parse(editingTemplate.variables || '[]');
-    } catch (e) {}
+    } catch (e) {
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
+    }
     
     return vars.map(v => (
       <span key={v} className="inline-block bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded font-mono mr-2 mb-2">
@@ -145,8 +153,6 @@ export default function AdminEmails() {
       </span>
     ));
   };
-
-  if (loading) return <div className="p-8 text-center text-slate-500 font-medium animate-pulse">Loading email system...</div>;
 
   return (
     <>
@@ -167,14 +173,14 @@ export default function AdminEmails() {
         )}
       </div>
 
-      <div className="flex border-b border-slate-200">
-        <button className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'editor' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('editor')}>
+      <div className="flex border-b overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden">
+        <button className={`px-4 py-2 font-medium flex items-center gap-2 transition-colors ${activeTab === 'editor' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('editor')}>
           <FileText className="w-4 h-4" /> Editor & Testing
         </button>
-        <button className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'preview' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('preview')}>
+        <button className={`px-4 py-2 font-medium flex items-center gap-2 transition-colors ${activeTab === 'preview' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('preview')}>
           <Eye className="w-4 h-4" /> Preview
         </button>
-        <button className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'logs' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('logs')}>
+        <button className={`px-4 py-2 font-medium flex items-center gap-2 transition-colors ${activeTab === 'logs' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('logs')}>
           <Mail className="w-4 h-4" /> Delivery Logs
         </button>
       </div>
@@ -191,6 +197,7 @@ export default function AdminEmails() {
               {templates.map(t => (
                 <button
                   key={t.id}
+                  disabled={loading}
                   onClick={() => handleSelect(t.id)}
                   className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors ${activeTemplateId === t.id ? 'bg-indigo-50 border-l-4 border-indigo-600' : 'border-l-4 border-transparent'} ${!t.isActive ? 'opacity-50' : ''}`}
                 >
@@ -198,6 +205,7 @@ export default function AdminEmails() {
                   <div className="text-xs text-slate-500 mt-1 truncate capitalize">{t.category} • {t.key}</div>
                 </button>
               ))}
+              {loading && <div className="p-4 flex items-center gap-2 text-slate-500 justify-center"><Loader2 className="w-4 h-4 animate-spin"/> Loading templates...</div>}
             </div>
           </div>
 
@@ -353,7 +361,9 @@ export default function AdminEmails() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
-                {logs.length === 0 ? (
+                {loading && logs.length === 0 ? (
+                  <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2"/> Loading logs...</td></tr>
+                ) : logs.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-slate-500">No email logs found.</td>
                   </tr>

@@ -73,7 +73,8 @@ export default function App() {
         else setActiveScan(null);
       }
     } catch (err: any) {
-      if (err?.response?.status !== 401) console.error("Failed to sync structural database state:", err);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       setAppIsSyncing(false);
     }
@@ -84,7 +85,7 @@ export default function App() {
   }, [isAuthenticated]);
 
   const handleUserSessionSwap = () => {
-    console.warn("Session swapping blocked. Waiting for real auth implementation.");
+    
   };
 
   const handleUpgradePlan = async (plan: string = "pro", billingPeriod: string = "monthly", couponCode?: string) => {
@@ -94,7 +95,7 @@ export default function App() {
       const data = response?.data;
       if (data?.url) window.location.href = data.url;
     } catch (err: any) {
-      if (err?.response?.status !== 401) console.error(err);
+      
       alert("Failed to initialize billing portal");
     }
   };
@@ -111,7 +112,7 @@ export default function App() {
       }
       if (data?.url) window.location.href = data.url;
     } catch (err: any) {
-      if (err?.response?.status !== 401) console.error(err);
+      
       alert("Failed to initialize billing portal or downgrade plan.");
     }
   };

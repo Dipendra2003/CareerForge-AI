@@ -60,7 +60,8 @@ export default function AdminAudit() {
       setAvailableModules(response.data.modules || []);
       setAvailableActions(response.data.actions || []);
     } catch (err) {
-      console.error("Failed to load filter options", err);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 
@@ -112,7 +113,7 @@ export default function AdminAudit() {
       link.click();
       link.remove();
     } catch (err) {
-      console.error("Export failed", err);
+      
       alert("Failed to export logs");
     } finally {
       setIsExporting(false);

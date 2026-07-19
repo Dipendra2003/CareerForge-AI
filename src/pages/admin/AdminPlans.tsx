@@ -33,7 +33,8 @@ export default function AdminPlans() {
       const res = await apiClient.get('/admin/plans');
       setPlans(res.data.plans);
     } catch (err: any) {
-      if (err?.response?.status !== 401) console.error(err);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     } finally {
       if (!silent) setLoading(false);
     }

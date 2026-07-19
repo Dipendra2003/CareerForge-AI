@@ -22,6 +22,8 @@ export const meHandler = async (req: Request, res: Response) => {
         plan: true,
         isEmailVerified: true,
         createdAt: true,
+        avatarUrl: true,
+        googleId: true,
         scansUsedThisMonth: true,
         userQuotaOverride: {
           select: {

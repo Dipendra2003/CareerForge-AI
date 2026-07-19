@@ -18,7 +18,8 @@ export default function BillingTab() {
       const { data } = await apiClient.get("/stripe/invoices");
       setInvoices(data.invoices);
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 
@@ -27,7 +28,8 @@ export default function BillingTab() {
       const { data } = await apiClient.post("/stripe/create-portal-session", {});
       if (data.url) window.location.href = data.url;
     } catch (error) {
-      console.error("Failed to create portal session:", error);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 

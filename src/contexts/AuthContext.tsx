@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Sentry.setUser({ id: data.user.id, email: data.user.email });
       }
     } catch (e) {
-      if(e?.response?.status !== 401) console.error("fetchUserRecord Error", e);
+      
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -119,7 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await apiClient.post("/auth/logout");
     } catch (e) {
-      console.error("Logout Error", e);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
     setAccessToken(null);
     setUser(null);

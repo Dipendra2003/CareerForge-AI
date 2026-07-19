@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
-import { Save, Bot, Plus, Trash, Play, AlertCircle } from "lucide-react";
+import { Save, Bot, Plus, Trash, Play, AlertCircle, Loader2 } from "lucide-react";
+import { useToast } from "../../contexts/ToastContext";
 
 export default function AdminAI() {
   const [settings, setSettings] = useState<any>({});
@@ -12,6 +13,7 @@ export default function AdminAI() {
   const [refreshingModels, setRefreshingModels] = useState(false);
   const [healthData, setHealthData] = useState<any[]>([]);
   const [cacheStatus, setCacheStatus] = useState<any>(null);
+  const toast = useToast();
   
   // Test Panel State
   const [testResume, setTestResume] = useState("");
@@ -26,18 +28,23 @@ export default function AdminAI() {
 
   const fetchSettings = async () => {
     try {
+      // Fetch core settings first so UI can render immediately
       const res = await apiClient.get('/admin/ai');
-      const modelsRes = await apiClient.get('/admin/ai/models');
-      const healthRes = await apiClient.get('/admin/ai/health');
-      
-      setAvailableModels(modelsRes.data || []);
-      setHealthData(healthRes.data.health || []);
-      setCacheStatus(healthRes.data.cache);
       setSettings(res.data.settings);
       setPrompts(res.data.prompts);
+      setLoading(false);
+
+      // Fetch heavier data (models & health) in parallel asynchronously
+      Promise.all([
+        apiClient.get('/admin/ai/models').catch(() => ({ data: [] })),
+        apiClient.get('/admin/ai/health').catch(() => ({ data: { health: [], cache: null } }))
+      ]).then(([modelsRes, healthRes]) => {
+        setAvailableModels(modelsRes.data || []);
+        setHealthData(healthRes.data.health || []);
+        setCacheStatus(healthRes.data.cache);
+      });
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
-    } finally {
+      console.error('An error occurred during this operation.');
       setLoading(false);
     }
   };
@@ -47,9 +54,9 @@ export default function AdminAI() {
     try {
       const modelsRes = await apiClient.get('/admin/ai/models?forceRefresh=true');
       setAvailableModels(modelsRes.data.models || []);
-      alert("Models refreshed from Google GenAI API!");
+      toast.success("Models refreshed from Google GenAI API!", "Success");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to refresh models");
+      toast.error(err.response?.data?.error || "Failed to refresh models", "Error");
     } finally {
       setRefreshingModels(false);
     }
@@ -59,9 +66,9 @@ export default function AdminAI() {
     setSaving(true);
     try {
       await apiClient.put('/admin/ai', settings);
-      alert("AI Settings saved successfully!");
+      toast.success("AI Settings saved successfully!", "Success");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to save AI settings");
+      toast.error(err.response?.data?.error || "Failed to save AI settings", "Error");
     } finally {
       setSaving(false);
     }
@@ -92,16 +99,16 @@ export default function AdminAI() {
         const newPrompts = [...prompts];
         newPrompts[idx] = res.data.prompt;
         setPrompts(newPrompts);
-        alert("Prompt created successfully");
+        toast.success("Prompt created successfully", "Success");
       } else {
         const res = await apiClient.put(`/admin/ai/prompts/${prompt.id}`, prompt);
         const newPrompts = [...prompts];
         newPrompts[idx] = res.data.prompt;
         setPrompts(newPrompts);
-        alert("Prompt updated successfully");
+        toast.success("Prompt updated successfully", "Success");
       }
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to save prompt");
+      toast.error(err.response?.data?.error || "Failed to save prompt", "Error");
     }
   };
 
@@ -114,13 +121,14 @@ export default function AdminAI() {
       const newPrompts = [...prompts];
       newPrompts.splice(idx, 1);
       setPrompts(newPrompts);
+      toast.success("Prompt deleted successfully", "Success");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to delete prompt");
+      toast.error(err.response?.data?.error || "Failed to delete prompt", "Error");
     }
   };
 
   const handleTest = async () => {
-    if (!testResume || !testPromptId) return alert("Resume and Prompt are required");
+    if (!testResume || !testPromptId) return toast.error("Resume and Prompt are required", "Validation Error");
     const prompt = prompts.find(p => p.id === testPromptId) || { content: testPromptId };
     
     setTesting(true);
@@ -139,7 +147,7 @@ export default function AdminAI() {
     }
   };
 
-  if (loading) return <div className="p-8">Loading AI settings...</div>;
+
 
   return (
     <>
@@ -150,6 +158,26 @@ export default function AdminAI() {
           AI Configuration
         </h1>
         
+
+
+      {activeTab === 'settings' && (
+          <button 
+            onClick={handleSaveSettings}
+            disabled={saving || loading}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          >
+            <Save className="w-4 h-4" /> {saving ? "Saving..." : "Save Settings"}
+          </button>
+        )}
+      </div>
+
+      <div className="flex border-b overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden">
+        <button className={`px-4 py-2 font-medium transition-colors ${activeTab === 'health' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('health')}>System Health</button>
+        <button className={`px-4 py-2 font-medium transition-colors ${activeTab === 'settings' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('settings')}>Settings & Models</button>
+        <button className={`px-4 py-2 font-medium transition-colors ${activeTab === 'prompts' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('prompts')}>Prompt Templates</button>
+        <button className={`px-4 py-2 font-medium transition-colors ${activeTab === 'test' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('test')}>Test Panel</button>
+      </div>
+
       {activeTab === 'health' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -168,7 +196,7 @@ export default function AdminAI() {
           </div>
           
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
               <h2 className="text-lg font-semibold text-slate-900">AI Model Health & Analytics</h2>
             </div>
             <div className="overflow-x-auto">
@@ -188,7 +216,7 @@ export default function AdminAI() {
                     <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">No runtime analytics yet.</td></tr>
                   )}
                   {healthData.map((h: any) => (
-                    <tr key={h.modelName} className="hover:bg-slate-50">
+                    <tr key={h.modelName} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-slate-900">{h.modelName}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -215,24 +243,6 @@ export default function AdminAI() {
       )}
 
       {activeTab === 'settings' && (
-          <button 
-            onClick={handleSaveSettings}
-            disabled={saving}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
-            <Save className="w-4 h-4" /> {saving ? "Saving..." : "Save Settings"}
-          </button>
-        )}
-      </div>
-
-      <div className="flex border-b">
-        <button className={`px-4 py-2 font-medium ${activeTab === 'health' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('health')}>System Health</button>
-        <button className={`px-4 py-2 font-medium ${activeTab === 'settings' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('settings')}>Settings & Models</button>
-        <button className={`px-4 py-2 font-medium ${activeTab === 'prompts' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('prompts')}>Prompt Templates</button>
-        <button className={`px-4 py-2 font-medium ${activeTab === 'test' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('test')}>Test Panel</button>
-      </div>
-
-      {activeTab === 'settings' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
             <h2 className="text-lg font-semibold text-slate-900 border-b pb-2">Model Parameters</h2>
@@ -244,8 +254,8 @@ export default function AdminAI() {
                   {refreshingModels ? "Refreshing..." : "Refresh Models"}
                 </button>
               </div>
-              <select name="geminiModel" value={settings.geminiModel || ''} onChange={handleSettingChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-                {availableModels.length === 0 && <option value="">Loading models...</option>}
+              <select name="geminiModel" disabled={loading} value={settings.geminiModel || ''} onChange={handleSettingChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 disabled:opacity-50">
+                {availableModels.length === 0 && <option value="">{loading ? "Loading models..." : "Fetching models..."}</option>}
                 {availableModels.map(m => (
                   <option key={m.name} value={m.name}>{m.displayName} ({m.version})</option>
                 ))}

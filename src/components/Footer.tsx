@@ -27,7 +27,7 @@ export default function Footer() {
         </p>
         <Link 
           to="/analyze" 
-          className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-xl hover:bg-opacity-90 transition shadow-sm text-sm"
+          className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-xl hover:bg-opacity-90 transition shadow-sm text-sm"
         >
           Analyze Resume Free
         </Link>

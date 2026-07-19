@@ -29,9 +29,16 @@ router.get("/dashboard", async (req: AuthRequest, res) => {
       settings = await prisma.securitySetting.create({ data: { userId } });
     }
 
+    const currentRefreshToken = req.cookies?.refreshToken;
+    const activeSessionsMapped = activeSessions.map(s => {
+       const isCurrent = s.refreshToken === currentRefreshToken;
+       const { refreshToken, ...rest } = s;
+       return { ...rest, isCurrent };
+    });
+
     res.json({
       loginHistory,
-      activeSessions,
+      activeSessions: activeSessionsMapped,
       trustedDevices,
       securitySettings: settings,
       alerts
@@ -114,17 +121,50 @@ router.delete("/trusted-devices/:id", async (req: AuthRequest, res) => {
 // 2FA Methods
 router.post("/2fa/enable", async (req: AuthRequest, res) => {
   try {
-    // Generate TOTP secret and backup codes
+    // Generate TOTP secret only. DO NOT enable yet.
     const secret = speakeasy.generateSecret().hex;
-    const codes = Array.from({ length: 10 }).map(() => crypto.randomBytes(4).toString('hex'));
 
     await prisma.securitySetting.upsert({
       where: { userId: req.user.id },
-      update: { twoFactorEnabled: true, twoFactorSecret: secret },
-      create: { userId: req.user.id, twoFactorEnabled: true, twoFactorSecret: secret }
+      update: { twoFactorEnabled: false, twoFactorSecret: secret },
+      create: { userId: req.user.id, twoFactorEnabled: false, twoFactorSecret: secret }
     });
 
-    // Delete existing backup codes and create new ones
+    res.json({ secret });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.post("/2fa/verify", async (req: AuthRequest, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: "Verification code is required" });
+
+    const settings = await prisma.securitySetting.findUnique({ where: { userId: req.user.id } });
+    if (!settings || !settings.twoFactorSecret) {
+      return res.status(400).json({ error: "2FA setup not initiated" });
+    }
+
+    const isValid = speakeasy.totp.verify({
+      secret: settings.twoFactorSecret,
+      encoding: 'hex',
+      token: code,
+      window: 1 // allow a 30s drift
+    });
+
+    if (!isValid) {
+      return res.status(400).json({ error: "Invalid verification code" });
+    }
+
+    // Now officially enable and generate backup codes
+    const codes = Array.from({ length: 10 }).map(() => crypto.randomBytes(4).toString('hex'));
+
+    await prisma.securitySetting.update({
+      where: { userId: req.user.id },
+      data: { twoFactorEnabled: true }
+    });
+
     await prisma.backupCode.deleteMany({ where: { userId: req.user.id } });
     await prisma.backupCode.createMany({
       data: codes.map(c => ({ userId: req.user.id, code: c }))
@@ -137,7 +177,7 @@ router.post("/2fa/enable", async (req: AuthRequest, res) => {
     const { sendTemplateEmail } = await import('../../services/email/emailService');
     await sendTemplateEmail('2fa_enabled', req.user.email, { name: req.user.name || 'User' });
 
-    res.json({ secret, backupCodes: codes });
+    res.json({ success: true, backupCodes: codes });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }

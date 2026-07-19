@@ -16,7 +16,8 @@ export default function ConnectedAccountsTab() {
       const { data } = await apiClient.get("/user/connections");
       setConnections(data);
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+      // Securely log the error without leaking stack traces or sensitive data
+      console.error('An error occurred during this operation.');
     }
   };
 
@@ -26,7 +27,7 @@ export default function ConnectedAccountsTab() {
       await apiClient.delete(`/user/connections/${provider}`);
       fetchConnections();
     } catch (err) {
-      if (err?.response?.status !== 401) console.error(err);
+      
       alert("Failed to disconnect account. You may need to set a password first if this is your only login method.");
     }
   };

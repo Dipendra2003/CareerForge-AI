@@ -10,14 +10,8 @@ interface LayoutWrapperProps {
 }
 
 export default function LayoutWrapper({ children, currentUser, appIsSyncing }: LayoutWrapperProps) {
-  const { user } = useAuth();
-  
-  // If user is admin, use AdminLayout for all pages
-  if (user?.role === 'admin' || currentUser?.role === 'admin') {
-    return <AdminLayout>{children}</AdminLayout>;
-  }
-  
-  // Otherwise use regular Layout
+  // Use regular Layout for all standard routes.
+  // The AdminRoute component and App.tsx router setup already handle wrapping /admin routes in AdminLayout.
   return (
     <Layout currentUser={currentUser} appIsSyncing={appIsSyncing}>
       {children}
